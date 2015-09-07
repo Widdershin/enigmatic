@@ -1,0 +1,27 @@
+{
+  "name": "enigmatic",
+  "version": "0.0.1",
+  "description": "Enigmatic is a real time strategy game about code breaking and encryption ",
+  "main": "index.js",
+  "scripts": {
+    "test": "npm test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Widdershin/enigmatic.git"
+  },
+  "author": "Nick Johnstone",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Widdershin/enigmatic/issues"
+  },
+  "homepage": "https://github.com/Widdershin/enigmatic",
+  "dependencies": {
+    "express": "^4.13.3",
+    "pixi.js": "^3.0.7",
+    "socket.io": "^1.3.6"
+  },
+  "devDependencies": {
+    "babelify": "^6.3.0"
+  }
+}
