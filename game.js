@@ -1,4 +1,6 @@
+const socket = window.socket;
 const PIXI = require('pixi.js');
+const $ = require('jquery');
 
 var renderer = new PIXI.WebGLRenderer(800, 600);
 
@@ -23,15 +25,37 @@ bunny.scale.y = 2;
 stage.addChild(bunny);
 
 // kick off the animation loop (defined below)
+registerInput();
 animate();
 
 function animate() {
-    // start the timer for the next animation loop
-    requestAnimationFrame(animate);
+  // start the timer for the next animation loop
+  requestAnimationFrame(animate);
 
-    // each frame we spin the bunny around a bit
-    bunny.rotation += 0.01;
+  update();
 
-    // this is the main render call that makes pixi draw your container and its children.
-    renderer.render(stage);
+  // this is the main render call that makes pixi draw your container and its children.
+  renderer.render(stage);
+}
+
+function update () {
+}
+
+const KEYS = {
+  W: 119,
+  S: 115,
+  A: 97,
+  D: 100
+}
+
+function registerInput () {
+  $(document).keypress(function (event) {
+    if (event.which === KEYS.A) {
+      bunny.rotation += 0.1;
+    }
+
+    if (event.which === KEYS.D) {
+      bunny.rotation -= 0.1;
+    }
+  });
 }
