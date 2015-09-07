@@ -24,6 +24,11 @@ bunny.scale.y = 2;
 // Add the bunny to the scene we are building.
 stage.addChild(bunny);
 
+var cameraPosition = {
+  x: 0,
+  y: 0
+};
+
 // kick off the animation loop (defined below)
 registerInput();
 animate();
@@ -39,6 +44,7 @@ function animate() {
 }
 
 function update () {
+  stage.position = cameraPosition;
 }
 
 const KEYS = {
@@ -50,12 +56,22 @@ const KEYS = {
 
 function registerInput () {
   $(document).keypress(function (event) {
+    const cameraSpeed = 5;
+
     if (event.which === KEYS.A) {
-      bunny.rotation += 0.1;
+      cameraPosition.x -= cameraSpeed;
     }
 
     if (event.which === KEYS.D) {
-      bunny.rotation -= 0.1;
+      cameraPosition.x += cameraSpeed;
+    }
+
+    if (event.which === KEYS.W) {
+      cameraPosition.y -= cameraSpeed;
+    }
+
+    if (event.which === KEYS.S) {
+      cameraPosition.y += cameraSpeed;
     }
   });
 }
