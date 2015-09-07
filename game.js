@@ -1,6 +1,9 @@
 const socket = window.socket;
 const PIXI = require('pixi.js');
 const $ = require('jquery');
+const _ = require('lodash');
+
+require('es6-shim');
 
 var renderer = new PIXI.WebGLRenderer(800, 600);
 
@@ -28,6 +31,45 @@ var cameraPosition = {
   x: 0,
   y: 0
 };
+
+function getOrSetName () {
+  if (localStorage.engimaticPlayerName !== undefined) {
+    return localStorage.engimaticPlayerName;
+  }
+
+  const newName = prompt('name: ');
+
+  localStorage.engimaticPlayerName = newName;
+
+  return newName;
+}
+
+let players;
+
+socket.emit('join game', getOrSetName());
+socket.on('update', updateNetworkState);
+
+let bunnies = {[getOrSetName()]: bunny};
+
+function updateNetworkState (newPlayersState) {
+  players = newPlayersState;
+  console.log(players);
+  for (let player of _.values(players)) {
+    if (player.new) {
+      let bunny = new PIXI.Sprite(bunnyTexture);
+
+      bunnies[player.name] = bunny;
+
+      bunny.scale.x = 2;
+      bunny.scale.y = 2;
+
+      stage.addChild(bunny);
+    }
+
+    bunnies[player.name].x = player.x;
+    bunnies[player.name].y = player.y;
+  }
+}
 
 // kick off the animation loop (defined below)
 registerInput();

@@ -23,31 +23,25 @@ io.on('connection', function (socket) {
   socket.on('join game', function (name) {
     player = {
       name: name,
-      x: 0,
-      y: 0
+      x: 50,
+      y: 0,
+      new: true
     };
-
-    console.info(name + ' joined game');
-
-    console.log('current players: ', players);
-    socket.emit('load', players);
 
     players[name] = player;
 
-    socket.broadcast.emit('player joined', name);
+    console.log('current players: ', players);
+    socket.broadcast.emit('update', players);
+
+    player.new = false;
   });
 
-  socket.on('player move', function (x, y) {
-    console.log(player.name + ' moved to ', {x: x, y: y});
-    player.x = x;
-    player.y = y;
+  socket.on('command', function (command, ...args) {
+    console.log(command, ...args);
 
-    socket.broadcast.emit(
-      'player move',
-      player.name,
-      player.x,
-      player.y
-    );
+    commands[command](players, player, ...args)
+
+    socket.broadcast.emit('update', players);
   });
 });
 
