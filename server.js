@@ -48,10 +48,20 @@ io.on('connection', function (socket) {
   });
 
   socket.on('join game', function (name) {
+    let newCommandCenterSpawnPoint = commandCenterSpawnPoint();
     player = {
       name: name,
       buildings: [
-        {id: getId(), type: 'command-center', health: 1000, position: commandCenterSpawnPoint()}
+        {id: getId(), type: 'command-center', health: 1000, position: newCommandCenterSpawnPoint}
+      ],
+
+      units: [
+        {
+          id: getId(),
+          type: 'worker',
+          health: 50,
+          position: {x: newCommandCenterSpawnPoint.x, y: newCommandCenterSpawnPoint.y + 40}
+        }
       ]
     };
 

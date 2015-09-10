@@ -14,7 +14,8 @@ document.body.appendChild(renderer.view);
 var stage = new PIXI.Container();
 
 // This creates a texture from a 'bunny.png' image.
-var bunnyTexture = PIXI.Texture.fromImage('sprites/command-center.png');
+var bunnyTexture = PIXI.Texture.fromImage('sprites/bunny.png');
+var commandCenterTexture = PIXI.Texture.fromImage('sprites/command-center.png');
 
 var backgroundTexture = PIXI.Texture.fromImage('sprites/ground.png');
 
@@ -57,6 +58,7 @@ function updateNetworkState (newPlayersState) {
 
   for (let player of _.values(players)) {
     renderBuildings(player.buildings);
+    renderUnits(player.units);
   }
 }
 
@@ -67,15 +69,30 @@ function renderBuildings (buildings) {
     let buildingSprite = buildingSprites[building.id];
 
     if (buildingSprite === undefined) {
-      buildingSprite = buildingSprites[building.id] = new PIXI.Sprite(bunnyTexture);
-      buildingSprite.scale.x = 1;
-      buildingSprite.scale.y = 1;
+      buildingSprite = buildingSprites[building.id] = new PIXI.Sprite(commandCenterTexture);
 
       stage.addChild(buildingSprite);
     }
 
     buildingSprite.x = building.position.x;
     buildingSprite.y = building.position.y;
+  });
+}
+
+var unitSprites = {};
+
+function renderUnits (units) {
+  units.forEach(unit => {
+    let unitSprite = unitSprites[unit.id];
+
+    if (unitSprite === undefined) {
+      unitSprite = unitSprites[unit.id] = new PIXI.Sprite(bunnyTexture);
+
+      stage.addChild(unitSprite);
+    }
+
+    unitSprite.x = unit.position.x;
+    unitSprite.y = unit.position.y;
   });
 }
 
