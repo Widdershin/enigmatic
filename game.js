@@ -201,7 +201,30 @@ function animate () {
   renderer.render(camera);
 }
 
+const behaviours = {
+  move (action, unit, unitSprite) {
+    const speed = 1;
+    var angleInDegrees = Math.atan2(action.position.x - unit.position.x, action.position.y - unit.position.y) * 180 / Math.PI;
+
+    const newPosition = {
+      x: unit.position.x + Math.cos(angleInDegrees) * speed,
+      y: unit.position.y - Math.sin(angleInDegrees) * speed
+    }
+
+    unit.position = newPosition;
+    unitSprite.x = newPosition.x;
+    unitSprite.y = newPosition.y;
+  }
+}
+
 function update () {
+  _.chain(players).values().map('units').flatten().value().forEach(unit => {
+    let currentAction = unit.waypoints[0];
+
+    if (currentAction === undefined) { return; }
+
+    behaviours[currentAction.action](currentAction, unit, unitSprites[unit.id]);
+  });
 }
 
 const KEYS = {

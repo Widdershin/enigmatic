@@ -38,7 +38,10 @@ const getId = (function () {
 
 const commands = {
   orderMove (players, player, unitId, newPosition) {
-    units[unitId].position = newPosition;
+    units[unitId].waypoints.push({
+      position: newPosition,
+      action: 'move'
+    })
   }
 };
 
@@ -67,7 +70,8 @@ io.on('connection', function (socket) {
           id: getId(),
           type: 'worker',
           health: 50,
-          position: {x: newCommandCenterSpawnPoint.x, y: newCommandCenterSpawnPoint.y + 40}
+          position: {x: newCommandCenterSpawnPoint.x, y: newCommandCenterSpawnPoint.y + 40},
+          waypoints: []
         }
       ],
       new: true
