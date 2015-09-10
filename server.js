@@ -9,6 +9,33 @@ app.get('/', function (req, res) {
   res.sendFile('index.html', { root: __dirname });
 });
 
+const commandCenterSpawnPoint = (function () {
+  const spawnPoints = [
+    { x: 500, y: 100 },
+    { x: 900, y: 500 },
+    { x: 500, y: 900 },
+    { x: 100, y: 500 }
+  ];
+
+  let count = -1;
+
+  return () => {
+    count += 1;
+
+    return spawnPoints[count % spawnPoints.length];
+  };
+}());
+
+const getId = (function () {
+  let count = 0;
+
+  return () => {
+    count += 1;
+
+    return count;
+  };
+}());
+
 var players = {};
 
 io.on('connection', function (socket) {
@@ -23,15 +50,15 @@ io.on('connection', function (socket) {
   socket.on('join game', function (name) {
     player = {
       name: name,
-      x: 50,
-      y: 0,
-      new: true
+      buildings: [
+        {id: getId(), type: 'command-center', health: 1000, position: commandCenterSpawnPoint()}
+      ]
     };
 
     players[name] = player;
 
     console.log('current players: ', players);
-    socket.broadcast.emit('update', players);
+    io.emit('update', players);
 
     player.new = false;
   });
@@ -41,10 +68,10 @@ io.on('connection', function (socket) {
 
     commands[command](players, player, ...args)
 
-    socket.broadcast.emit('update', players);
+    io.emit('update', players);
   });
 });
 
-http.listen(3000, function () {
-  console.log('listening on *:3000');
+http.listen(3001, function () {
+  console.log('listening on *:3001');
 });

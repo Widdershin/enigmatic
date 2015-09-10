@@ -5,7 +5,7 @@ const _ = require('lodash');
 
 require('es6-shim');
 
-var renderer = new PIXI.WebGLRenderer(800, 600);
+var renderer = new PIXI.WebGLRenderer(800, 600, null, false, false);
 
 // The renderer will create a canvas element for you that you can then insert into the DOM.
 document.body.appendChild(renderer.view);
@@ -14,18 +14,14 @@ document.body.appendChild(renderer.view);
 var stage = new PIXI.Container();
 
 // This creates a texture from a 'bunny.png' image.
-var bunnyTexture = PIXI.Texture.fromImage('bunny.png');
-var bunny = new PIXI.Sprite(bunnyTexture);
+var bunnyTexture = PIXI.Texture.fromImage('sprites/command-center.png');
 
-// Setup the position and scale of the bunny
-bunny.position.x = 400;
-bunny.position.y = 300;
+var backgroundTexture = PIXI.Texture.fromImage('sprites/ground.png');
 
-bunny.scale.x = 2;
-bunny.scale.y = 2;
+var background = new PIXI.TilingSprite(backgroundTexture, 2000, 2000);
 
-// Add the bunny to the scene we are building.
-stage.addChild(bunny);
+stage.addChild(background);
+
 
 var cameraPosition = {
   x: 0,
@@ -46,36 +42,48 @@ function getOrSetName () {
 
 let players;
 
-socket.emit('join game', getOrSetName());
-socket.on('update', updateNetworkState);
+var name = getOrSetName();
 
-let bunnies = {[getOrSetName()]: bunny};
+socket.emit('join game', name);
+socket.on('update', updateNetworkState);
 
 function updateNetworkState (newPlayersState) {
   players = newPlayersState;
-  console.log(players);
+  const currentPlayer = players[name];
+
+  if (currentPlayer.new) {
+    cameraPosition = currentPlayer.buildings[0].position;
+  }
+
   for (let player of _.values(players)) {
-    if (player.new) {
-      let bunny = new PIXI.Sprite(bunnyTexture);
+    renderBuildings(player.buildings);
+  }
+}
 
-      bunnies[player.name] = bunny;
+var buildingSprites = {};
 
-      bunny.scale.x = 2;
-      bunny.scale.y = 2;
+function renderBuildings (buildings) {
+  buildings.forEach(building => {
+    let buildingSprite = buildingSprites[building.id];
 
-      stage.addChild(bunny);
+    if (buildingSprite === undefined) {
+      buildingSprite = buildingSprites[building.id] = new PIXI.Sprite(bunnyTexture);
+      buildingSprite.scale.x = 1;
+      buildingSprite.scale.y = 1;
+
+      stage.addChild(buildingSprite);
     }
 
-    bunnies[player.name].x = player.x;
-    bunnies[player.name].y = player.y;
-  }
+    buildingSprite.x = building.position.x;
+    buildingSprite.y = building.position.y;
+  });
 }
 
 // kick off the animation loop (defined below)
 registerInput();
 animate();
 
-function animate() {
+function animate () {
   // start the timer for the next animation loop
   requestAnimationFrame(animate);
 
@@ -90,11 +98,11 @@ function update () {
 }
 
 const KEYS = {
-  W: 119,
-  S: 115,
-  A: 97,
-  D: 100
-}
+  S: 119,
+  W: 115,
+  D: 97,
+  A: 100
+};
 
 function registerInput () {
   $(document).keypress(function (event) {
