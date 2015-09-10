@@ -5,13 +5,20 @@ const _ = require('lodash');
 
 require('es6-shim');
 
-var renderer = new PIXI.WebGLRenderer(800, 600, null, false, false);
+var renderer = new PIXI.WebGLRenderer(800, 600, {antialias: false});
+PIXI.scaleModes.DEFAULT = PIXI.scaleModes.NEAREST;
 
 // The renderer will create a canvas element for you that you can then insert into the DOM.
 document.body.appendChild(renderer.view);
 
+var camera = new PIXI.Container();
+
 // You need to create a root container that will hold the scene you want to draw.
 var stage = new PIXI.Container();
+
+camera.addChild(stage);
+
+camera.scale = new PIXI.Point(2, 2);
 
 // This creates a texture from a 'bunny.png' image.
 var bunnyTexture = PIXI.Texture.fromImage('sprites/bunny.png');
@@ -23,6 +30,9 @@ var background = new PIXI.TilingSprite(backgroundTexture, 2000, 2000);
 
 stage.addChild(background);
 
+const commandBar = renderCommandBar();
+
+camera.addChild(commandBar);
 
 var cameraPosition = {
   x: 0,
@@ -71,12 +81,22 @@ function renderBuildings (buildings) {
     if (buildingSprite === undefined) {
       buildingSprite = buildingSprites[building.id] = new PIXI.Sprite(commandCenterTexture);
 
+      buildingSprite.scale = new PIXI.Point(2, 2);
+
+      buildingSprite.pivot = new PIXI.Point(0.5, 0.5);
+
+      buildingSprite.interactive = true;
+
       stage.addChild(buildingSprite);
     }
 
     buildingSprite.x = building.position.x;
     buildingSprite.y = building.position.y;
   });
+}
+
+function focus (entity, sprite) {
+
 }
 
 var unitSprites = {};
@@ -87,6 +107,11 @@ function renderUnits (units) {
 
     if (unitSprite === undefined) {
       unitSprite = unitSprites[unit.id] = new PIXI.Sprite(bunnyTexture);
+      unitSprite.interactive = true;
+
+      unitSprite.click = (interactionData) => {
+        focus(unit, unitSprite);
+      }
 
       stage.addChild(unitSprite);
     }
@@ -96,6 +121,15 @@ function renderUnits (units) {
   });
 }
 
+function renderCommandBar () {
+  const commandBar = new PIXI.Graphics();
+
+  commandBar.beginFill(0x222034);
+  commandBar.lineStyle(3, 0x000000);
+  commandBar.drawRect(0, 400, 800, 200);
+
+  return commandBar;
+}
 // kick off the animation loop (defined below)
 registerInput();
 animate();
@@ -107,7 +141,7 @@ function animate () {
   update();
 
   // this is the main render call that makes pixi draw your container and its children.
-  renderer.render(stage);
+  renderer.render(camera);
 }
 
 function update () {
