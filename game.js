@@ -76,7 +76,7 @@ function updateNetworkState (newPlayersState) {
   }
 
   if (currentPlayer.new) {
-    focus(currentPlayer.buildings[0], currentPlayer.buildings[0].sprite);
+    focus(currentPlayer.buildings[0], buildingSprites[currentPlayer.buildings[0].id]);
   }
 }
 
@@ -89,9 +89,13 @@ function renderBuildings (buildings) {
     if (buildingSprite === undefined) {
       buildingSprite = buildingSprites[building.id] = new PIXI.Sprite(commandCenterTexture);
 
+      buildingSprite.click = (interactionData) => {
+        focus(building, buildingSprite);
+      };
+
       buildingSprite.scale = new PIXI.Point(2, 2);
 
-      buildingSprite.pivot = new PIXI.Point(0.5, 0.5);
+      buildingSprite.anchor = new PIXI.Point(0.5, 0.5);
 
       buildingSprite.interactive = true;
 
@@ -103,8 +107,19 @@ function renderBuildings (buildings) {
   });
 }
 
+var selectionRing;
+
 function focus (entity, sprite) {
   let newCameraPosition = entity.position;
+
+  if (selectionRing !== undefined) {
+    selectionRing.parent.removeChild(selectionRing);
+    selectionRing.destroy();
+  }
+
+  selectionRing = renderSelectionRing(entity, sprite);
+
+  sprite.addChild(selectionRing);
 
   moveCamera({x: newCameraPosition.x - 200, y: newCameraPosition.y - 100});
 }
@@ -118,10 +133,11 @@ function renderUnits (units) {
     if (unitSprite === undefined) {
       unitSprite = unitSprites[unit.id] = new PIXI.Sprite(bunnyTexture);
       unitSprite.interactive = true;
+      unitSprite.anchor = new PIXI.Point(0.5, 0.5);
 
       unitSprite.click = (interactionData) => {
         focus(unit, unitSprite);
-      }
+      };
 
       stage.addChild(unitSprite);
     }
@@ -134,11 +150,20 @@ function renderUnits (units) {
 function renderCommandBar () {
   const commandBar = new PIXI.Graphics();
 
-  commandBar.beginFill(0x222034, 1);
+  commandBar.beginFill(0x2f2c47, 1);
   commandBar.lineStyle(3, 0x000000);
   commandBar.drawRect(0, 220, 400, 100);
 
   return commandBar;
+}
+
+function renderSelectionRing (entity, sprite) {
+  const selectionRing = new PIXI.Graphics();
+
+  selectionRing.lineStyle(3, 0x99e550);
+  selectionRing.drawCircle(0, 0, sprite.height / 1.7);
+
+  return selectionRing;
 }
 // kick off the animation loop (defined below)
 registerInput();
