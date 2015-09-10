@@ -39,6 +39,14 @@ var cameraPosition = {
   y: 0
 };
 
+function moveCamera (newPosition) {
+  cameraPosition = Object.assign(cameraPosition, newPosition);
+  console.log('moving camera to', cameraPosition);
+  stage.position = {x: -cameraPosition.x, y: -cameraPosition.y};
+}
+
+window.moveCamera = moveCamera;
+
 function getOrSetName () {
   if (localStorage.engimaticPlayerName !== undefined) {
     return localStorage.engimaticPlayerName;
@@ -62,13 +70,13 @@ function updateNetworkState (newPlayersState) {
   players = newPlayersState;
   const currentPlayer = players[name];
 
-  if (currentPlayer.new) {
-    cameraPosition = currentPlayer.buildings[0].position;
-  }
-
   for (let player of _.values(players)) {
     renderBuildings(player.buildings);
     renderUnits(player.units);
+  }
+
+  if (currentPlayer.new) {
+    focus(currentPlayer.buildings[0], currentPlayer.buildings[0].sprite);
   }
 }
 
@@ -96,7 +104,9 @@ function renderBuildings (buildings) {
 }
 
 function focus (entity, sprite) {
+  let newCameraPosition = entity.position;
 
+  moveCamera({x: newCameraPosition.x - 200, y: newCameraPosition.y - 100});
 }
 
 var unitSprites = {};
@@ -124,9 +134,9 @@ function renderUnits (units) {
 function renderCommandBar () {
   const commandBar = new PIXI.Graphics();
 
-  commandBar.beginFill(0x222034);
+  commandBar.beginFill(0x222034, 1);
   commandBar.lineStyle(3, 0x000000);
-  commandBar.drawRect(0, 400, 800, 200);
+  commandBar.drawRect(0, 220, 400, 100);
 
   return commandBar;
 }
@@ -145,14 +155,13 @@ function animate () {
 }
 
 function update () {
-  stage.position = cameraPosition;
 }
 
 const KEYS = {
-  S: 119,
-  W: 115,
-  D: 97,
-  A: 100
+  W: 119,
+  S: 115,
+  A: 97,
+  D: 100
 };
 
 function registerInput () {
@@ -160,19 +169,19 @@ function registerInput () {
     const cameraSpeed = 5;
 
     if (event.which === KEYS.A) {
-      cameraPosition.x -= cameraSpeed;
+      moveCamera({x: cameraPosition.x - cameraSpeed});
     }
 
     if (event.which === KEYS.D) {
-      cameraPosition.x += cameraSpeed;
+      moveCamera({x: cameraPosition.x + cameraSpeed});
     }
 
     if (event.which === KEYS.W) {
-      cameraPosition.y -= cameraSpeed;
+      moveCamera({y: cameraPosition.y - cameraSpeed});
     }
 
     if (event.which === KEYS.S) {
-      cameraPosition.y += cameraSpeed;
+      moveCamera({y: cameraPosition.y + cameraSpeed});
     }
   });
 }

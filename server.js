@@ -62,7 +62,8 @@ io.on('connection', function (socket) {
           health: 50,
           position: {x: newCommandCenterSpawnPoint.x, y: newCommandCenterSpawnPoint.y + 40}
         }
-      ]
+      ],
+      new: true
     };
 
     players[name] = player;
