@@ -203,6 +203,7 @@ function animate () {
 
 const behaviours = {
   move (action, unit, unitSprite) {
+    // TODO - account for delta time
     const speed = 1;
     var angleInDegrees = Math.atan2(action.position.x - unit.position.x, action.position.y - unit.position.y) * 180 / Math.PI;
 
