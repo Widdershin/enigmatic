@@ -2,6 +2,8 @@ const socket = window.socket;
 const PIXI = require('pixi.js');
 const $ = require('jquery');
 const _ = require('lodash');
+const Rx = require('rx');
+require('rx-dom');
 
 require('es6-shim');
 
@@ -41,9 +43,26 @@ var cameraPosition = {
 
 function moveCamera (newPosition) {
   cameraPosition = Object.assign(cameraPosition, newPosition);
-  console.log('moving camera to', cameraPosition);
   stage.position = {x: -cameraPosition.x, y: -cameraPosition.y};
 }
+
+function getMousePosition () {
+  let screenPosition = renderer.plugins.interaction.mouse.global;
+
+  return {
+    x: cameraPosition.x + (screenPosition.x / 2),
+    y: cameraPosition.y + (screenPosition.y / 2)
+  };
+}
+
+Rx.DOM.fromEvent(document.body, 'mousedown')
+  .filter(ev => ev.which === 3)
+  .map(getMousePosition)
+  .forEach(sendMoveCommand)
+
+function sendMoveCommand (movePosition) {
+  socket.emit('command', 'orderMove', selectedUnit.entity.id, movePosition)
+};
 
 window.moveCamera = moveCamera;
 
@@ -108,9 +127,12 @@ function renderBuildings (buildings) {
 }
 
 var selectionRing;
+var selectedUnit;
 
 function focus (entity, sprite) {
   let newCameraPosition = entity.position;
+
+  selectedUnit = {entity, sprite};
 
   if (selectionRing !== undefined) {
     selectionRing.parent.removeChild(selectionRing);

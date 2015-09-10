@@ -36,7 +36,14 @@ const getId = (function () {
   };
 }());
 
+const commands = {
+  orderMove (players, player, unitId, newPosition) {
+    units[unitId].position = newPosition;
+  }
+};
+
 var players = {};
+var units = {};
 
 io.on('connection', function (socket) {
   var player = {};
@@ -67,6 +74,8 @@ io.on('connection', function (socket) {
     };
 
     players[name] = player;
+
+    units[player.units[0].id] = player.units[0];
 
     console.log('current players: ', players);
     io.emit('update', players);
