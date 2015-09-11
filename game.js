@@ -189,22 +189,25 @@ function renderSelectionRing (entity, sprite) {
 }
 // kick off the animation loop (defined below)
 registerInput();
-animate();
+animate(0);
 
-function animate () {
+let lastTime = 0;
+
+function animate (currentTime) {
+  let deltaTime = currentTime - lastTime;
   // start the timer for the next animation loop
   requestAnimationFrame(animate);
 
-  update();
+  update(deltaTime);
 
   // this is the main render call that makes pixi draw your container and its children.
   renderer.render(camera);
+  lastTime = currentTime;
 }
 
 const behaviours = {
-  move (action, unit, unitSprite) {
-    // TODO - account for delta time
-    const speed = 1;
+  move (deltaTime, action, unit, unitSprite) {
+    const speed = 0.1 * deltaTime;
     var angleInDegrees = Math.atan2(action.position.x - unit.position.x, action.position.y - unit.position.y) * 180 / Math.PI;
 
     const newPosition = {
@@ -218,13 +221,13 @@ const behaviours = {
   }
 }
 
-function update () {
+function update (deltaTime) {
   _.chain(players).values().map('units').flatten().value().forEach(unit => {
     let currentAction = unit.waypoints[0];
 
     if (currentAction === undefined) { return; }
 
-    behaviours[currentAction.action](currentAction, unit, unitSprites[unit.id]);
+    behaviours[currentAction.action](deltaTime, currentAction, unit, unitSprites[unit.id]);
   });
 }
 
