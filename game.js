@@ -7,6 +7,8 @@ require('rx-dom');
 
 require('es6-shim');
 
+const behaviours = require('./behaviour');
+
 var renderer = new PIXI.WebGLRenderer(800, 600, {antialias: false});
 PIXI.scaleModes.DEFAULT = PIXI.scaleModes.NEAREST;
 
@@ -20,7 +22,9 @@ var stage = new PIXI.Container();
 
 camera.addChild(stage);
 
-camera.scale = new PIXI.Point(2, 2);
+const SCALE = 2;
+
+camera.scale = new PIXI.Point(SCALE, SCALE);
 
 // This creates a texture from a 'bunny.png' image.
 var bunnyTexture = PIXI.Texture.fromImage('sprites/bunny.png');
@@ -50,8 +54,8 @@ function getMousePosition () {
   let screenPosition = renderer.plugins.interaction.mouse.global;
 
   return {
-    x: cameraPosition.x + (screenPosition.x / 2),
-    y: cameraPosition.y + (screenPosition.y / 2)
+    x: cameraPosition.x + (screenPosition.x / SCALE),
+    y: cameraPosition.y + (screenPosition.y / SCALE)
   };
 }
 
@@ -222,8 +226,8 @@ function update (deltaTime) {
       unit.waypoints.shift();
     }
 
-    unitSprites[unit.id].x = unit.x;
-    unitSprites[unit.id].y = unit.y;
+    unitSprites[unit.id].x = unit.position.x;
+    unitSprites[unit.id].y = unit.position.y;
   });
 }
 
