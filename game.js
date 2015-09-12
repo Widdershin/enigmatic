@@ -216,7 +216,10 @@ function update (deltaTime) {
 
     if (currentAction === undefined) { return; }
 
-    behaviours[currentAction.action](deltaTime, currentAction, unit, unitSprites[unit.id]);
+    behaviours[currentAction.action](deltaTime, currentAction, unit);
+
+    unitSprites[unit.id].x = unit.x;
+    unitSprites[unit.id].y = unit.y;
   });
 }
 

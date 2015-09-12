@@ -58,7 +58,7 @@ function update (deltaTime) {
 
     if (currentAction === undefined) { return; }
 
-    behaviours[currentAction.action](deltaTime, currentAction, unit, {x: 0, y: 0});
+    behaviours[currentAction.action](deltaTime, currentAction, unit);
   });
 }
 
