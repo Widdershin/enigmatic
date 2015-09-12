@@ -1,3 +1,14 @@
+function distance (a, b) {
+  const distanceVector = {
+    x: Math.abs(a.x - b.x),
+    y: Math.abs(a.y - b.y)
+  };
+
+  return Math.sqrt(
+    Math.pow(2, distanceVector.x),
+    Math.pow(2, distanceVector.y)
+  );
+}
 
 module.exports = {
   move (deltaTime, action, unit) {
@@ -12,5 +23,7 @@ module.exports = {
       x: unit.position.x + Math.cos(angleInDegrees) * speed,
       y: unit.position.y - Math.sin(angleInDegrees) * speed
     };
+
+    return distance(action.position, unit.position) < 50;
   }
 };

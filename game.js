@@ -216,7 +216,11 @@ function update (deltaTime) {
 
     if (currentAction === undefined) { return; }
 
-    behaviours[currentAction.action](deltaTime, currentAction, unit);
+    const done = behaviours[currentAction.action](deltaTime, currentAction, unit);
+
+    if (done) {
+      unit.waypoints.shift();
+    }
 
     unitSprites[unit.id].x = unit.x;
     unitSprites[unit.id].y = unit.y;

@@ -58,7 +58,11 @@ function update (deltaTime) {
 
     if (currentAction === undefined) { return; }
 
-    behaviours[currentAction.action](deltaTime, currentAction, unit);
+    const done = behaviours[currentAction.action](deltaTime, currentAction, unit);
+
+    if (done) {
+      unit.waypoints.shift();
+    }
   });
 }
 
