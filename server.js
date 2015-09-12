@@ -1,7 +1,12 @@
+const Rx = require('rx');
+const _ = require('lodash');
+
 var express = require('express');
 var app = express();
 var http = require('http').Server(app);
 var io = require('socket.io')(http);
+
+const behaviours = require('./behaviour');
 
 app.use(express.static('static'));
 
@@ -44,6 +49,37 @@ const commands = {
     })
   }
 };
+
+const TICK_RATE = 30;
+
+function update (deltaTime) {
+  _.chain(players).values().map('units').flatten().value().forEach(unit => {
+    let currentAction = unit.waypoints[0];
+
+    if (currentAction === undefined) { return; }
+
+    behaviours[currentAction.action](deltaTime, currentAction, unit, {x: 0, y: 0});
+  });
+}
+
+let lastTime = 0;
+
+function updateState ({timestamp: currentTime}) {
+  const deltaTime = currentTime - lastTime;
+
+  update(deltaTime);
+
+  lastTime = currentTime;
+
+  return players;
+}
+
+Rx.Observable.interval(1000 / TICK_RATE)
+  .timestamp()
+  .map(updateState)
+  .filter(_ => Object.keys(players).length >= 1)
+  .distinctUntilChanged(JSON.stringify)
+  .forEach(state => io.emit('update', state));
 
 var players = {};
 var units = {};

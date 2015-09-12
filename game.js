@@ -89,6 +89,11 @@ function updateNetworkState (newPlayersState) {
   players = newPlayersState;
   const currentPlayer = players[name];
 
+  if (currentPlayer === undefined) {
+    console.alert("Received state update with current player state");
+    return;
+  }
+
   for (let player of _.values(players)) {
     renderBuildings(player.buildings);
     renderUnits(player.units);
@@ -203,22 +208,6 @@ function animate (currentTime) {
   // this is the main render call that makes pixi draw your container and its children.
   renderer.render(camera);
   lastTime = currentTime;
-}
-
-const behaviours = {
-  move (deltaTime, action, unit, unitSprite) {
-    const speed = 0.1 * deltaTime;
-    var angleInDegrees = Math.atan2(action.position.x - unit.position.x, action.position.y - unit.position.y) * 180 / Math.PI;
-
-    const newPosition = {
-      x: unit.position.x + Math.cos(angleInDegrees) * speed,
-      y: unit.position.y - Math.sin(angleInDegrees) * speed
-    }
-
-    unit.position = newPosition;
-    unitSprite.x = newPosition.x;
-    unitSprite.y = newPosition.y;
-  }
 }
 
 function update (deltaTime) {
