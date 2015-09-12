@@ -1,14 +1,4 @@
-function distance (a, b) {
-  const distanceVector = {
-    x: Math.abs(a.x - b.x),
-    y: Math.abs(a.y - b.y)
-  };
-
-  return Math.sqrt(
-    Math.pow(2, distanceVector.x),
-    Math.pow(2, distanceVector.y)
-  );
-}
+const distance = require('./distance');
 
 module.exports = {
   move (deltaTime, action, unit) {
