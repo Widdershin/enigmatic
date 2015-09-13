@@ -94,7 +94,7 @@ function updateNetworkState (newPlayersState) {
   const currentPlayer = players[name];
 
   if (currentPlayer === undefined) {
-    console.alert("Received state update with current player state");
+    console.warn("Received state update with current player state");
     return;
   }
 
@@ -132,6 +132,23 @@ function renderBuildings (buildings) {
 
     buildingSprite.x = building.position.x;
     buildingSprite.y = building.position.y;
+  });
+}
+
+var commandRings = [];
+
+function renderCommands (commands, center) {
+  commands.forEach(command => {
+    const commandRing = new PIXI.Graphics();
+    commandRing.lineStyle(2, 0xFAFAFA);
+
+    const scale = (new Date().getTime() - command.timestamp) / 3;
+
+    commandRing.drawCircle(center.x, center.y, scale);
+
+    commandRings.push(commandRing);
+
+    stage.addChild(commandRing);
   });
 }
 
@@ -208,6 +225,15 @@ function animate (currentTime) {
   requestAnimationFrame(animate);
 
   update(deltaTime);
+
+  commandRings.forEach(ring => {
+    ring.parent.removeChild(ring);
+    ring.destroy();
+  });
+
+  commandRings = [];
+
+  _.values(players).forEach(player => renderCommands(player.commands, player.buildings[0].position));
 
   // this is the main render call that makes pixi draw your container and its children.
   renderer.render(camera);

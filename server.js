@@ -114,6 +114,9 @@ io.on('connection', function (socket) {
           waypoints: []
         }
       ],
+
+      commands: [],
+
       new: true
     };
 
@@ -130,7 +133,9 @@ io.on('connection', function (socket) {
   socket.on('command', function (command, ...args) {
     console.log(command, ...args);
 
-    commands[command](players, player, ...args)
+    commands[command](players, player, ...args);
+
+    player.commands.push({command, args, timestamp: new Date().getTime(), id: getId()});
 
     io.emit('update', players);
   });
