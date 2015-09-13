@@ -44,9 +44,11 @@ const getId = (function () {
 
 const commands = {
   orderMove (players, player, unitId, newPosition) {
-    units[unitId].waypoints.push({
+    units[unitId].incomingMessages.push({
       position: newPosition,
-      action: 'move'
+      action: 'move',
+      timestamp: new Date().getTime(),
+      origin: player.buildings[0].position
     });
   }
 };
@@ -98,6 +100,7 @@ io.on('connection', function (socket) {
           type: 'worker',
           health: 50,
           position: {x: newCommandCenterSpawnPoint.x, y: newCommandCenterSpawnPoint.y + 40},
+          incomingMessages: [],
           waypoints: []
         }
       ],

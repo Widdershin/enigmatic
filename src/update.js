@@ -4,17 +4,23 @@ const Circle = require('../node_modules/pixi.js/src/core/math/shapes/Circle.js')
 
 const waveRadius = require('./calculate-wave-radius');
 
-function buildingInsideWave (building, command) {
+function positionInsideWave (position, command) {
   return new Circle(command.origin.x, command.origin.y, waveRadius(command))
-    .contains(building.position.x, building.position.y);
+    .contains(position.x, position.y);
 }
 
-function receivedCommands (commands, building) {
-  return commands.filter(command => buildingInsideWave(building, command));
+function receivedCommands (commands, position) {
+  return commands.filter(command => positionInsideWave(position, command));
 }
 
 function update (players, deltaTime, unitUpdateCallback) {
   _.chain(players).values().map('units').flatten().value().forEach(unit => {
+    const newlyReceivedCommands = receivedCommands(unit.incomingMessages, unit.position);
+
+    unit.incomingMessages.splice(0, newlyReceivedCommands.length);
+
+    unit.waypoints = unit.waypoints.concat(newlyReceivedCommands);
+
     let currentAction = unit.waypoints[0];
 
     if (currentAction === undefined) { return; }
@@ -35,7 +41,7 @@ function update (players, deltaTime, unitUpdateCallback) {
 
     const allCommands = _.chain(otherPlayers).map('commands').flatten().value();
 
-    player.receivedMessages = receivedCommands(allCommands, player.buildings[0]);
+    player.receivedMessages = receivedCommands(allCommands, player.buildings[0].position);
   });
 }
 
