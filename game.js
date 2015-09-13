@@ -7,7 +7,8 @@ require('rx-dom');
 
 require('es6-shim');
 
-const behaviours = require('./behaviour');
+const waveRadius = require('./src/calculate-wave-radius');
+const update = require('./src/update');
 
 var renderer = new PIXI.WebGLRenderer(800, 600, {antialias: false});
 PIXI.scaleModes.DEFAULT = PIXI.scaleModes.NEAREST;
@@ -220,11 +221,15 @@ animate(0);
 let lastTime = 0;
 
 function animate (currentTime) {
+  const player = players[name];
   let deltaTime = currentTime - lastTime;
   // start the timer for the next animation loop
   requestAnimationFrame(animate);
 
-  update(deltaTime);
+  update(players, deltaTime, (unit) => {
+    unitSprites[unit.id].x = unit.position.x;
+    unitSprites[unit.id].y = unit.position.y;
+  });
 
   commandRings.forEach(ring => {
     ring.parent.removeChild(ring);
@@ -235,47 +240,15 @@ function animate (currentTime) {
 
   _.values(players).forEach(player => renderCommands(player.commands, player.buildings[0].position));
 
+  if (player) {
+    updateInterceptLog(player);
+  }
+
   // this is the main render call that makes pixi draw your container and its children.
   renderer.render(camera);
   lastTime = currentTime;
 }
 
-function waveRadius (command) {
-  return (new Date().getTime() - command.timestamp) / 3;
-}
-
-function buildingInsideWave (building, command) {
-  return new PIXI.Circle(command.origin.x, command.origin.y, waveRadius(command))
-    .contains(building.position.x, building.position.y);
-}
-
-function receivedCommands (commands, building) {
-  return commands.filter(command => buildingInsideWave(building, command));
-}
-
-function update (deltaTime) {
-  const player = players[name];
-  const otherPlayers = _.chain(players).values().reject({name}).value();
-
-  _.chain(players).values().map('units').flatten().value().forEach(unit => {
-    let currentAction = unit.waypoints[0];
-
-    if (currentAction === undefined) { return; }
-
-    const done = behaviours[currentAction.action](deltaTime, currentAction, unit);
-
-    if (done) {
-      unit.waypoints.shift();
-    }
-
-    unitSprites[unit.id].x = unit.position.x;
-    unitSprites[unit.id].y = unit.position.y;
-  });
-
-  if (player) {
-    updateInterceptLog(player.buildings[0], otherPlayers);
-  }
-}
 
 var interceptText = new PIXI.Text('No messages intercepted yet', {
   font: '12px VT323',
@@ -286,13 +259,8 @@ interceptText.position = new PIXI.Point(5, 220);
 
 commandBar.addChild(interceptText);
 
-function updateInterceptLog (headquarters, enemies) {
-  const receivedMessages = receivedCommands(
-    _.flatten(enemies.map(enemy => enemy.commands)),
-    headquarters
-  );
-
-  interceptText.text = _.takeRight(receivedMessages, 5)
+function updateInterceptLog (player) {
+  interceptText.text = _.takeRight(player.receivedMessages, 5)
     .map(message => message.humanReadable).join('\n');
 }
 

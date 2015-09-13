@@ -7,6 +7,7 @@ var http = require('http').Server(app);
 var io = require('socket.io')(http);
 
 const behaviours = require('./behaviour');
+const update = require('./src/update');
 
 app.use(express.static('static'));
 
@@ -46,32 +47,18 @@ const commands = {
     units[unitId].waypoints.push({
       position: newPosition,
       action: 'move'
-    })
+    });
   }
 };
 
 const TICK_RATE = 30;
-
-function update (deltaTime) {
-  _.chain(players).values().map('units').flatten().value().forEach(unit => {
-    let currentAction = unit.waypoints[0];
-
-    if (currentAction === undefined) { return; }
-
-    const done = behaviours[currentAction.action](deltaTime, currentAction, unit);
-
-    if (done) {
-      unit.waypoints.shift();
-    }
-  });
-}
 
 let lastTime = 0;
 
 function updateState ({timestamp: currentTime}) {
   const deltaTime = currentTime - lastTime;
 
-  update(deltaTime);
+  update(players, deltaTime);
 
   lastTime = currentTime;
 
