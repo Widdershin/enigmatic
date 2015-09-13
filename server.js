@@ -135,7 +135,16 @@ io.on('connection', function (socket) {
 
     commands[command](players, player, ...args);
 
-    player.commands.push({command, args, timestamp: new Date().getTime(), id: getId()});
+    const now = new Date();
+
+    player.commands.push({
+      command,
+      args,
+      timestamp: new Date().getTime(),
+      id: getId(),
+      origin: player.buildings[0].position,
+      humanReadable: `${now.getHours()}:${now.getMinutes()}:${now.getSeconds()} - MOVE 1 UNIT TO X: ${args[1].x}, Y: ${args[1].y}`
+    });
 
     io.emit('update', players);
   });

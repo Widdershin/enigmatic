@@ -82,7 +82,7 @@ function getOrSetName () {
   return newName;
 }
 
-let players;
+var players = {};
 
 var name = getOrSetName();
 
@@ -142,7 +142,7 @@ function renderCommands (commands, center) {
     const commandRing = new PIXI.Graphics();
     commandRing.lineStyle(2, 0xFAFAFA);
 
-    const scale = (new Date().getTime() - command.timestamp) / 3;
+    const scale = waveRadius(command);
 
     commandRing.drawCircle(center.x, center.y, scale);
 
@@ -240,7 +240,23 @@ function animate (currentTime) {
   lastTime = currentTime;
 }
 
+function waveRadius (command) {
+  return (new Date().getTime() - command.timestamp) / 3;
+}
+
+function buildingInsideWave (building, command) {
+  return new PIXI.Circle(command.origin.x, command.origin.y, waveRadius(command))
+    .contains(building.position.x, building.position.y);
+}
+
+function receivedCommands (commands, building) {
+  return commands.filter(command => buildingInsideWave(building, command));
+}
+
 function update (deltaTime) {
+  const player = players[name];
+  const otherPlayers = _.chain(players).values().reject({name}).value();
+
   _.chain(players).values().map('units').flatten().value().forEach(unit => {
     let currentAction = unit.waypoints[0];
 
@@ -255,16 +271,39 @@ function update (deltaTime) {
     unitSprites[unit.id].x = unit.position.x;
     unitSprites[unit.id].y = unit.position.y;
   });
+
+  if (player) {
+    updateInterceptLog(player.buildings[0], otherPlayers);
+  }
 }
 
-const KEYS = {
-  W: 119,
-  S: 115,
-  A: 97,
-  D: 100
-};
+var interceptText = new PIXI.Text('No messages intercepted yet', {
+  font: '12px VT323',
+  fill: '#fffccc'
+});
+
+interceptText.position = new PIXI.Point(5, 220);
+
+commandBar.addChild(interceptText);
+
+function updateInterceptLog (headquarters, enemies) {
+  const receivedMessages = receivedCommands(
+    _.flatten(enemies.map(enemy => enemy.commands)),
+    headquarters
+  );
+
+  interceptText.text = _.takeRight(receivedMessages, 5)
+    .map(message => message.humanReadable).join('\n');
+}
 
 function registerInput () {
+  const KEYS = {
+    W: 119,
+    S: 115,
+    A: 97,
+    D: 100
+  };
+
   $(document).keypress(function (event) {
     const cameraSpeed = 5;
 
