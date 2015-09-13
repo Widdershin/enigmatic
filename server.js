@@ -130,7 +130,7 @@ io.on('connection', function (socket) {
       timestamp: new Date().getTime(),
       id: getId(),
       origin: player.buildings[0].position,
-      humanReadable: `${now.getHours()}:${now.getMinutes()}:${now.getSeconds()} - MOVE 1 UNIT TO X: ${args[1].x}, Y: ${args[1].y}`
+      humanReadable: `${_.padLeft(now.getHours(), 2, '0')}:${_.padLeft(now.getMinutes(), 2, '0')}:${_.padLeft(now.getSeconds(), 2, '0')} - MOVE 1 UNIT TO X: ${args[1].x}, Y: ${args[1].y}`
     });
 
     io.emit('update', players);
