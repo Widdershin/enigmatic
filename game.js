@@ -156,26 +156,6 @@ function renderCommands (commands, center) {
   });
 }
 
-var selectionRing;
-var selectedUnit;
-
-function focus (entity, sprite) {
-  let newCameraPosition = entity.position;
-
-  selectedUnit = {entity, sprite};
-
-  if (selectionRing !== undefined) {
-    selectionRing.parent.removeChild(selectionRing);
-    selectionRing.destroy();
-  }
-
-  selectionRing = renderSelectionRing(entity, sprite);
-
-  sprite.addChild(selectionRing);
-
-  moveCamera({x: newCameraPosition.x - 200, y: newCameraPosition.y - 100});
-}
-
 var unitSprites = {};
 
 function renderUnits (units) {
@@ -217,6 +197,27 @@ function renderSelectionRing (entity, sprite) {
 
   return selectionRing;
 }
+
+var selectionRing;
+var selectedUnit;
+
+function focus (entity, sprite) {
+  let newCameraPosition = entity.position;
+
+  selectedUnit = {entity, sprite};
+
+  if (selectionRing !== undefined) {
+    selectionRing.parent.removeChild(selectionRing);
+    selectionRing.destroy();
+  }
+
+  selectionRing = renderSelectionRing(entity, sprite);
+
+  sprite.addChild(selectionRing);
+
+  moveCamera({x: newCameraPosition.x - 200, y: newCameraPosition.y - 100});
+}
+
 // kick off the animation loop (defined below)
 registerInput();
 animate(0);
@@ -245,13 +246,13 @@ function animate (currentTime) {
 
   if (player) {
     updateInterceptLog(player);
+    updateResourcesText(player);
   }
 
   // this is the main render call that makes pixi draw your container and its children.
   renderer.render(camera);
   lastTime = currentTime;
 }
-
 
 var interceptText = new PIXI.Text('No messages intercepted yet', {
   font: '12px VT323',
@@ -262,9 +263,22 @@ interceptText.position = new PIXI.Point(5, 220);
 
 commandBar.addChild(interceptText);
 
+var resourcesText = new PIXI.Text('Bucks: $100', {
+  font: '12px VT323',
+  fill: '#FFF'
+});
+
+resourcesText.position = new PIXI.Point(5, 5);
+
+camera.addChild(resourcesText);
+
 function updateInterceptLog (player) {
   interceptText.text = _.takeRight(player.receivedMessages, 5)
     .map(message => message.humanReadable).join('\n');
+}
+
+function updateResourcesText (player) {
+  resourcesText.text = `Spacebucks: $${player.spaceBucks.toFixed(0)}`;
 }
 
 function registerInput () {
