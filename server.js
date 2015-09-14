@@ -8,39 +8,14 @@ var io = require('socket.io')(http);
 
 const behaviours = require('./behaviour');
 const update = require('./src/update');
+const getId = require('./src/get-id');
+const Player = require('./src/player');
 
 app.use(express.static('static'));
 
 app.get('/', function (req, res) {
   res.sendFile('index.html', { root: __dirname });
 });
-
-const commandCenterSpawnPoint = (function () {
-  const spawnPoints = [
-    { x: 500, y: 100 },
-    { x: 900, y: 500 },
-    { x: 500, y: 900 },
-    { x: 100, y: 500 }
-  ];
-
-  let count = -1;
-
-  return () => {
-    count += 1;
-
-    return spawnPoints[count % spawnPoints.length];
-  };
-}());
-
-const getId = (function () {
-  let count = 0;
-
-  return () => {
-    count += 1;
-
-    return count;
-  };
-}());
 
 const commands = {
   orderMove (players, player, unitId, newPosition) {
@@ -87,29 +62,7 @@ io.on('connection', function (socket) {
   });
 
   socket.on('join game', function (name) {
-    let newCommandCenterSpawnPoint = commandCenterSpawnPoint();
-    player = {
-      name: name,
-      buildings: [
-        {id: getId(), type: 'command-center', health: 1000, position: newCommandCenterSpawnPoint}
-      ],
-
-      units: [
-        {
-          id: getId(),
-          type: 'worker',
-          health: 50,
-          position: {x: newCommandCenterSpawnPoint.x, y: newCommandCenterSpawnPoint.y + 40},
-          incomingMessages: [],
-          waypoints: []
-        }
-      ],
-
-      commands: [],
-
-      new: true
-    };
-
+    player = Player(name);
     players[name] = player;
 
     units[player.units[0].id] = player.units[0];
