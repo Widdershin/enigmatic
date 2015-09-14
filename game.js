@@ -63,11 +63,20 @@ function getMousePosition () {
 Rx.DOM.fromEvent(document.body, 'mousedown')
   .filter(ev => ev.which === 3)
   .map(getMousePosition)
-  .forEach(sendMoveCommand)
+  .forEach(sendCommand);
 
-function sendMoveCommand (movePosition) {
-  socket.emit('command', 'orderMove', selectedUnit.entity.id, movePosition)
-};
+function sendCommand (movePosition) {
+  let command = 'orderMove';
+  let action;
+
+  if (buildingToBeBuilt) {
+    command = 'build';
+    action = buildingToBeBuilt.action;
+    buildingToBeBuilt = null;
+  }
+
+  socket.emit('command', command, selectedUnit.entity.id, movePosition, action);
+}
 
 window.moveCamera = moveCamera;
 

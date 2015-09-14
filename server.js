@@ -21,6 +21,20 @@ const commands = {
       timestamp: new Date().getTime(),
       origin: player.buildings[0].position
     });
+  },
+
+  // TODO - validation
+  // TODO - don't pass cost in, players can pay what they want right now
+  build (players, player, unitId, position, action) {
+    player.spaceBucks -= action.cost;
+
+    units[unitId].incomingMessages.push({
+      position,
+      action: 'build',
+      timestamp: new Date().getTime(),
+      origin: player.buildings[0].position,
+      details: action
+    })
   }
 };
 
@@ -72,13 +86,23 @@ io.on('connection', function (socket) {
 
     const now = new Date();
 
+    let commandTimestamp = `${_.padLeft(now.getHours(), 2, '0')}:${_.padLeft(now.getMinutes(), 2, '0')}:${_.padLeft(now.getSeconds(), 2, '0')}`;
+
+    let humanReadable;
+
+    if (command === 'orderMove') {
+      humanReadable = `MOVE 1 UNIT TO X: ${args[1].x}, Y: ${args[1].y}`;
+    } else if (command === 'build') {
+      humanReadable = `BUILD ${args[2].buildingType.toUpperCase()} AT X: ${args[1].x}, Y: ${args[1].y}`;
+    }
+
     player.commands.push({
       command,
       args,
       timestamp: new Date().getTime(),
       id: getId(),
       origin: player.buildings[0].position,
-      humanReadable: `${_.padLeft(now.getHours(), 2, '0')}:${_.padLeft(now.getMinutes(), 2, '0')}:${_.padLeft(now.getSeconds(), 2, '0')} - MOVE 1 UNIT TO X: ${args[1].x}, Y: ${args[1].y}`
+      humanReadable: `${commandTimestamp} - ${humanReadable}`
     });
 
     io.emit('update', players);

@@ -16,29 +16,29 @@ function receivedCommands (commands, position) {
 }
 
 function update (players, deltaTime, unitUpdateCallback) {
-  _.chain(players).values().map('units').flatten().value().forEach(unit => {
-    const newlyReceivedCommands = receivedCommands(unit.incomingMessages, unit.position);
-
-    unit.incomingMessages.splice(0, newlyReceivedCommands.length);
-
-    unit.waypoints = unit.waypoints.concat(newlyReceivedCommands);
-
-    let currentAction = unit.waypoints[0];
-
-    if (currentAction === undefined) { return; }
-
-    const done = behaviours[currentAction.action](deltaTime, currentAction, unit);
-
-    if (done) {
-      unit.waypoints.shift();
-    }
-
-    if (unitUpdateCallback) {
-      unitUpdateCallback(unit);
-    }
-  });
-
   _.values(players).forEach(player => {
+    player.units.forEach(unit => {
+      const newlyReceivedCommands = receivedCommands(unit.incomingMessages, unit.position);
+
+      unit.incomingMessages.splice(0, newlyReceivedCommands.length);
+
+      unit.waypoints = unit.waypoints.concat(newlyReceivedCommands);
+
+      let currentAction = unit.waypoints[0];
+
+      if (currentAction === undefined) { return; }
+
+      const done = behaviours[currentAction.action](player, deltaTime, currentAction, unit);
+
+      if (done) {
+        unit.waypoints.shift();
+      }
+
+      if (unitUpdateCallback) {
+        unitUpdateCallback(unit);
+      }
+    });
+
     const otherPlayers = _.chain(players).values().reject({name: player.name}).value();
 
     const allCommands = _.chain(otherPlayers).map('commands').flatten().value();
