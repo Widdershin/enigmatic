@@ -38,7 +38,10 @@ function Player (name) {
         health: 50,
         position: {x: newCommandCenterSpawnPoint.x, y: newCommandCenterSpawnPoint.y + 40},
         incomingMessages: [],
-        waypoints: []
+        waypoints: [],
+        possibleActions: [
+          {command: 'build', buildingType: 'barracks', cost: 100}
+        ]
       }
     ],
 

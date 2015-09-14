@@ -13,12 +13,9 @@ const update = require('./src/update');
 var renderer = new PIXI.WebGLRenderer(800, 600, {antialias: false});
 PIXI.scaleModes.DEFAULT = PIXI.scaleModes.NEAREST;
 
-// The renderer will create a canvas element for you that you can then insert into the DOM.
 document.body.appendChild(renderer.view);
 
 var camera = new PIXI.Container();
-
-// You need to create a root container that will hold the scene you want to draw.
 var stage = new PIXI.Container();
 
 camera.addChild(stage);
@@ -27,11 +24,11 @@ const SCALE = 2;
 
 camera.scale = new PIXI.Point(SCALE, SCALE);
 
-// This creates a texture from a 'bunny.png' image.
 const textures = {
   'command-center': PIXI.Texture.fromImage('sprites/command-center.png'),
   extractor: PIXI.Texture.fromImage('sprites/extractor.png'),
-  bunny: PIXI.Texture.fromImage('sprites/bunny.png')
+  bunny: PIXI.Texture.fromImage('sprites/bunny.png'),
+  barracks: PIXI.Texture.fromImage('sprites/barracks.png'),
 };
 
 var backgroundTexture = PIXI.Texture.fromImage('sprites/ground.png');
@@ -202,7 +199,9 @@ var selectionRing;
 var selectedUnit;
 
 function focus (entity, sprite) {
-  let newCameraPosition = entity.position;
+  let newCameraPosition = sprite.position;
+
+  updateActionBar(entity.possibleActions || []);
 
   selectedUnit = {entity, sprite};
 
@@ -279,6 +278,54 @@ function updateInterceptLog (player) {
 
 function updateResourcesText (player) {
   resourcesText.text = `Spacebucks: $${player.spaceBucks.toFixed(0)}`;
+}
+
+var actionButtons = [];
+
+var buildingToBeBuilt;
+
+Rx.DOM.fromEvent(document.body, 'mousemove')
+  .map(getMousePosition)
+  .forEach(mousePosition => {
+    if (buildingToBeBuilt) {
+      buildingToBeBuilt.sprite.position = new PIXI.Point(mousePosition.x, mousePosition.y);
+    }
+  });
+
+function updateActionBar (possibleActions) {
+  actionButtons.forEach(button => {
+    button.parent.removeChild(button);
+    button.destroy();
+  });
+
+  actionButtons = [];
+
+  possibleActions.forEach((action, index) => {
+    const button = new PIXI.Text(`${action.command} ${action.buildingType} ($${action.cost})`, {
+      font: '14px VT323',
+      fill: '#FFF'
+    });
+
+    button.interactive = true;
+    camera.addChild(button);
+
+    button.position = new PIXI.Point(index * 30 + 5, 200);
+
+    button.click = () => {
+      buildingToBeBuilt = {
+        sprite: new PIXI.Sprite(textures[action.buildingType]),
+        action
+      };
+
+      buildingToBeBuilt.sprite.scale = new PIXI.Point(SCALE, SCALE);
+      buildingToBeBuilt.sprite.anchor = new PIXI.Point(0.5, 0.5);
+
+      stage.addChild(buildingToBeBuilt.sprite);
+      buildingToBeBuilt.sprite.tint = 0xAAFFAA;
+    };
+
+    actionButtons.push(button);
+  });
 }
 
 function registerInput () {
