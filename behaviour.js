@@ -1,6 +1,7 @@
 const _ = require('lodash');
 
 const distance = require('./distance');
+const getId = require('./src/get-id');
 
 function move (player, deltaTime, action, unit) {
   const speed = 0.1 * deltaTime;
@@ -24,6 +25,7 @@ module.exports = {
   build (player, deltaTime, action, unit) {
     if (distance(unit.position, action.position) > 2) {
       move(player, deltaTime, action, unit);
+      return false;
     }
 
     let building = _.first(
@@ -33,9 +35,12 @@ module.exports = {
     // TODO - set health
     if (building === undefined) {
       player.buildings.push({
-        type: action.buildingType,
-        position: unit.position
+        type: action.details.buildingType,
+        position: unit.position,
+        id: getId()
       });
     }
+
+    return true;
   }
 };

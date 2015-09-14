@@ -72,6 +72,8 @@ function sendCommand (movePosition) {
   if (buildingToBeBuilt) {
     command = 'build';
     action = buildingToBeBuilt.action;
+    buildingToBeBuilt.sprite.parent.removeChild(buildingToBeBuilt.sprite);
+    buildingToBeBuilt.sprite.destroy();
     buildingToBeBuilt = null;
   }
 

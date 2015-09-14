@@ -77,7 +77,8 @@ describe('build', () => {
       x: 0,
       y: 50
     },
-    buildingType: 'barracks'
+    action: 'build',
+    details: {buildingType: 'barracks', cost: 100, command: 'build'}
   };
 
   it('first moves to the build position', () => {
@@ -100,6 +101,6 @@ describe('build', () => {
     _.times(30, () => behaviours.build(player, 30, action, unit));
 
     assert.equal(player.buildings.length, 1);
-    assert.equal(player.buildings[0].type, action.buildingType);
+    assert.equal(player.buildings[0].type, action.details.buildingType);
   });
 });
