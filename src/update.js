@@ -4,6 +4,8 @@ const Circle = require('../node_modules/pixi.js/src/core/math/shapes/Circle.js')
 
 const waveRadius = require('./calculate-wave-radius');
 
+const EXTRACTOR_INCOME = 10 / 1000;
+
 function positionInsideWave (position, command) {
   return new Circle(command.origin.x, command.origin.y, waveRadius(command))
     .contains(position.x, position.y);
@@ -42,6 +44,10 @@ function update (players, deltaTime, unitUpdateCallback) {
     const allCommands = _.chain(otherPlayers).map('commands').flatten().value();
 
     player.receivedMessages = receivedCommands(allCommands, player.buildings[0].position);
+
+    player.spaceBucks += player.buildings
+      .filter(building => building.type === 'extractor')
+      .length * deltaTime * EXTRACTOR_INCOME;
   });
 }
 
