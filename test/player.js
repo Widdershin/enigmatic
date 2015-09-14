@@ -1,7 +1,6 @@
 /* globals describe, it */
 
 const Player = require('../src/player');
-const update = require('../src/update');
 const assert = require('assert');
 
 describe('Player', () => {

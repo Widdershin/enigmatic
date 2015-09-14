@@ -1,21 +1,17 @@
 const Rx = require('rx');
 const _ = require('lodash');
 
-var express = require('express');
-var app = express();
-var http = require('http').Server(app);
-var io = require('socket.io')(http);
+const express = require('express');
+const app = express();
+const http = require('http').Server(app);
+const io = require('socket.io')(http);
 
-const behaviours = require('./behaviour');
 const update = require('./src/update');
 const getId = require('./src/get-id');
 const Player = require('./src/player');
 
-app.use(express.static('static'));
-
-app.get('/', function (req, res) {
-  res.sendFile('index.html', { root: __dirname });
-});
+const TICK_RATE = 30;
+let lastTime = 0;
 
 const commands = {
   orderMove (players, player, unitId, newPosition) {
@@ -27,10 +23,6 @@ const commands = {
     });
   }
 };
-
-const TICK_RATE = 30;
-
-let lastTime = 0;
 
 function updateState ({timestamp: currentTime}) {
   const deltaTime = currentTime - lastTime;
@@ -91,6 +83,12 @@ io.on('connection', function (socket) {
 
     io.emit('update', players);
   });
+});
+
+app.use(express.static('static'));
+
+app.get('/', function (req, res) {
+  res.sendFile('index.html', { root: __dirname });
 });
 
 http.listen(3001, function () {
