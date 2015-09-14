@@ -19,8 +19,8 @@ const commandCenterSpawnPoint = (function () {
 
 function startingBuildings (baseCenter) {
   return [
-    {id: getId(), type: 'command-center', health: 1000, position: baseCenter},
-    {id: getId(), type: 'extractor', health: 600, position: {x: baseCenter.x - 75, y: baseCenter.y - 30}}
+    {id: getId(), type: 'command-center', health: 1000, position: baseCenter, complete: true},
+    {id: getId(), type: 'extractor', health: 600, position: {x: baseCenter.x - 75, y: baseCenter.y - 30}, complete: true}
   ];
 }
 
@@ -40,7 +40,7 @@ function Player (name) {
         incomingMessages: [],
         waypoints: [],
         possibleActions: [
-          {command: 'build', buildingType: 'barracks', cost: 100}
+          {command: 'build', buildingType: 'barracks', cost: 100, buildTime: 10000}
         ]
       }
     ],

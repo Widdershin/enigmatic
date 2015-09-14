@@ -139,11 +139,54 @@ function renderBuildings (buildings) {
 
       buildingSprite.interactive = true;
 
+      const buildingBar = new PIXI.Graphics();
+
+      buildingSprite.addChild(buildingBar);
+      buildingSprite.bar = buildingBar;
+
+      buildingBar.beginFill(0x0F0F0F);
+
+      const buildingInnerBar = new PIXI.Graphics();
+      buildingInnerBar.anchor = new PIXI.Point(0, 0.5);
+
+      let barWidth = 15;
+      let barHeight = 3;
+
+      buildingBar.drawRect(
+        -barWidth / 2,
+        -17,
+        barWidth,
+        barHeight
+      );
+
+      buildingBar.endFill();
+
+      buildingBar.inner = buildingInnerBar;
+
+      buildingInnerBar.beginFill(0xF0F0F0);
+
+      buildingInnerBar.drawRect(
+        -barWidth / 2,
+        -17,
+        barWidth,
+        barHeight
+      );
+
+      buildingBar.endFill();
+
+      buildingBar.addChild(buildingInnerBar);
       stage.addChild(buildingSprite);
     }
 
+    const buildingBar = buildingSprite.bar;
+
     buildingSprite.x = building.position.x;
     buildingSprite.y = building.position.y;
+
+    buildingBar.visible = !building.complete;
+    if (!building.complete) {
+      buildingBar.inner.scale = new PIXI.Point(building.progress / building.buildTime, 1);
+    }
   });
 }
 

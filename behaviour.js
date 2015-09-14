@@ -37,10 +37,23 @@ module.exports = {
       player.buildings.push({
         type: action.details.buildingType,
         position: unit.position,
-        id: getId()
+        id: getId(),
+        complete: false,
+        progress: 0,
+        buildTime: action.details.buildTime
       });
+
+      return false;
     }
 
-    return true;
+    if (building.complete) {
+      return true;
+    }
+
+    building.progress += deltaTime;
+
+    if (building.progress >= action.details.buildTime) {
+      building.complete = true;
+    }
   }
 };

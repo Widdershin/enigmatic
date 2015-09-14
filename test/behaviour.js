@@ -78,7 +78,7 @@ describe('build', () => {
       y: 50
     },
     action: 'build',
-    details: {buildingType: 'barracks', cost: 100, command: 'build'}
+    details: {buildingType: 'barracks', cost: 100, command: 'build', buildTime: 10000}
   };
 
   it('first moves to the build position', () => {
@@ -92,7 +92,7 @@ describe('build', () => {
     assert(distance(unit.position, action.position) < 5);
   });
 
-  it ('then makes a building', () => {
+  it('then builds a building', () => {
     const player = {
       units: [unit],
       buildings: []
@@ -102,5 +102,10 @@ describe('build', () => {
 
     assert.equal(player.buildings.length, 1);
     assert.equal(player.buildings[0].type, action.details.buildingType);
+    assert.equal(player.buildings[0].complete, false);
+
+    behaviours.build(player, action.details.buildTime + 10, action, unit);
+
+    assert.equal(player.buildings[0].complete, true);
   });
 });
