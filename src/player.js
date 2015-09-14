@@ -17,13 +17,19 @@ const commandCenterSpawnPoint = (function () {
   };
 }());
 
+function startingBuildings (baseCenter) {
+  return [
+    {id: getId(), type: 'command-center', health: 1000, position: baseCenter},
+    {id: getId(), type: 'extractor', health: 600, position: {x: baseCenter.x - 75, y: baseCenter.y - 30}}
+  ];
+}
+
 function Player (name) {
   let newCommandCenterSpawnPoint = commandCenterSpawnPoint();
+
   return {
     name,
-    buildings: [
-      {id: getId(), type: 'command-center', health: 1000, position: newCommandCenterSpawnPoint}
-    ],
+    buildings: startingBuildings(newCommandCenterSpawnPoint),
 
     units: [
       {

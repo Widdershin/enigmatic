@@ -28,8 +28,11 @@ const SCALE = 2;
 camera.scale = new PIXI.Point(SCALE, SCALE);
 
 // This creates a texture from a 'bunny.png' image.
-var bunnyTexture = PIXI.Texture.fromImage('sprites/bunny.png');
-var commandCenterTexture = PIXI.Texture.fromImage('sprites/command-center.png');
+const textures = {
+  'command-center': PIXI.Texture.fromImage('sprites/command-center.png'),
+  extractor: PIXI.Texture.fromImage('sprites/extractor.png'),
+  bunny: PIXI.Texture.fromImage('sprites/bunny.png')
+};
 
 var backgroundTexture = PIXI.Texture.fromImage('sprites/ground.png');
 
@@ -116,7 +119,7 @@ function renderBuildings (buildings) {
     let buildingSprite = buildingSprites[building.id];
 
     if (buildingSprite === undefined) {
-      buildingSprite = buildingSprites[building.id] = new PIXI.Sprite(commandCenterTexture);
+      buildingSprite = buildingSprites[building.id] = new PIXI.Sprite(textures[building.type]);
 
       buildingSprite.click = (interactionData) => {
         focus(building, buildingSprite);
@@ -180,7 +183,7 @@ function renderUnits (units) {
     let unitSprite = unitSprites[unit.id];
 
     if (unitSprite === undefined) {
-      unitSprite = unitSprites[unit.id] = new PIXI.Sprite(bunnyTexture);
+      unitSprite = unitSprites[unit.id] = new PIXI.Sprite(textures.bunny);
       unitSprite.interactive = true;
       unitSprite.anchor = new PIXI.Point(0.5, 0.5);
 
