@@ -12,7 +12,7 @@ describe('Player', () => {
 
     const oldSpaceBucksAmount = player.spaceBucks;
 
-    update(players, 1000);
+    update(players, 10000);
 
     assert.equal(player.spaceBucks, oldSpaceBucksAmount + 10);
   });

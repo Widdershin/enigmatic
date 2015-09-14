@@ -4,7 +4,7 @@ const Circle = require('../node_modules/pixi.js/src/core/math/shapes/Circle.js')
 
 const waveRadius = require('./calculate-wave-radius');
 
-const EXTRACTOR_INCOME = 10 / 1000;
+const EXTRACTOR_INCOME = 1 / 1000;
 
 function positionInsideWave (position, command) {
   return new Circle(command.origin.x, command.origin.y, waveRadius(command))
