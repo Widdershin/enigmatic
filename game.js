@@ -373,6 +373,7 @@ function updateActionBar (possibleActions) {
 
       buildingToBeBuilt.sprite.scale = new PIXI.Point(SCALE, SCALE);
       buildingToBeBuilt.sprite.anchor = new PIXI.Point(0.5, 0.5);
+      buildingToBeBuilt.sprite.alpha = 0.7;
 
       stage.addChild(buildingToBeBuilt.sprite);
       buildingToBeBuilt.sprite.tint = 0xAAFFAA;
