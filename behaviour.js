@@ -34,6 +34,7 @@ function train (player, deltaTime, action, building) {
       waypoints: []
     });
 
+    building.trainingProgress = 0;
     return true;
   }
 

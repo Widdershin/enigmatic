@@ -41,8 +41,8 @@ function Player (name) {
         incomingMessages: [],
         waypoints: [],
         possibleActions: [
-          {command: 'build', buildingType: 'barracks', cost: 100, buildTime: 10000},
-          {command: 'build', buildingType: 'extractor', cost: 80, buildTime: 12000}
+          {command: 'build', buildingType: 'barracks', cost: 100, buildTime: 20000},
+          {command: 'build', buildingType: 'extractor', cost: 80, buildTime: 15000}
         ]
       }
     ],

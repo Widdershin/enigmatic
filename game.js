@@ -189,10 +189,17 @@ function renderBuildings (buildings) {
     buildingSprite.x = building.position.x;
     buildingSprite.y = building.position.y;
 
-    buildingBar.visible = !building.complete;
-    if (!building.complete) {
-      buildingBar.inner.scale = new PIXI.Point(building.progress / building.buildTime, 1);
+    let barScale;
+    let currentAction = building.waypoints[0];
+
+    if (currentAction && currentAction.action === 'train') {
+      barScale = building.trainingProgress / currentAction.details.buildTime;
+    } else if (!building.complete) {
+      barScale = building.progress / building.buildTime;
     }
+
+    buildingBar.inner.scale = new PIXI.Point(barScale, 1);
+    buildingBar.visible = !!barScale;
   });
 }
 

@@ -29,5 +29,6 @@ describe('train', () => {
     behaviours.train(player, deltaTime, action, barracks);
 
     assert.equal(_.last(player.units).type, 'marine');
+    assert.equal(barracks.trainingProgress, 0);
   });
 });
