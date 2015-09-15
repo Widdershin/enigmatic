@@ -30,5 +30,8 @@
     "browserify": "^11.0.1",
     "browserify-hmr": "^0.2.2",
     "watchify": "^3.4.0"
+  },
+  "engines": {
+    "node": "4.x"
   }
 }
