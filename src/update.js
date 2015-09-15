@@ -17,6 +17,24 @@ function receivedCommands (commands, position) {
 
 function update (players, deltaTime, unitUpdateCallback) {
   _.values(players).forEach(player => {
+    player.buildings.forEach(building => {
+      const newlyReceivedCommands = receivedCommands(building.incomingMessages, building.position);
+
+      building.incomingMessages.splice(0, newlyReceivedCommands.length);
+
+      building.waypoints = building.waypoints.concat(newlyReceivedCommands);
+
+      let currentAction = building.waypoints[0];
+
+      if (currentAction === undefined) { return; }
+
+      const done = behaviours[currentAction.action](player, deltaTime, currentAction, building);
+
+      if (done) {
+        building.waypoints.shift();
+      }
+    });
+
     player.units.forEach(unit => {
       const newlyReceivedCommands = receivedCommands(unit.incomingMessages, unit.position);
 

@@ -15,7 +15,9 @@ let lastTime = 0;
 
 const commands = {
   orderMove (players, player, unitId, newPosition) {
-    units[unitId].incomingMessages.push({
+    const unit = player.units.find(unit => unit.id === unitId);
+
+    unit.incomingMessages.push({
       position: newPosition,
       action: 'move',
       timestamp: new Date().getTime(),
@@ -28,13 +30,26 @@ const commands = {
   build (players, player, unitId, position, action) {
     player.spaceBucks -= action.cost;
 
-    units[unitId].incomingMessages.push({
+    const unit = player.units.find(unit => unit.id === unitId);
+
+    unit.incomingMessages.push({
       position,
       action: 'build',
       timestamp: new Date().getTime(),
       origin: player.buildings[0].position,
       details: action
-    })
+    });
+  },
+
+  train (players, player, unitId, position, action) {
+    const building = player.buildings.find(building => building.id === unitId);
+
+    building.incomingMessages.push({
+      action: 'train',
+      timestamp: new Date().getTime(),
+      origin: player.buildings[0].position,
+      details: action
+    });
   }
 };
 
@@ -94,6 +109,8 @@ io.on('connection', function (socket) {
       humanReadable = `MOVE 1 UNIT TO X: ${args[1].x}, Y: ${args[1].y}`;
     } else if (command === 'build') {
       humanReadable = `BUILD ${args[2].buildingType.toUpperCase()} AT X: ${args[1].x}, Y: ${args[1].y}`;
+    } else if (command === 'train') {
+      humanReadable = `TRAIN ${args[2].unitType.toUpperCase()}`;
     }
 
     player.commands.push({

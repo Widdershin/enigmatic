@@ -1,7 +1,8 @@
 /* globals describe, it */
 
 const update = require('../src/update');
-const Player = require('../src/Player');
+const Player = require('../src/player');
+const Building = require('../src/buildings');
 const assert = require('assert');
 
 describe('Player', () => {
@@ -18,7 +19,9 @@ describe('Player', () => {
 
     oldSpaceBucksAmount = player.spaceBucks;
 
-    player.buildings.push({type: 'extractor', position: {x: 0, y: 0}, complete: false});
+    player.buildings.push(
+      Building('extractor', {position: {x: 0, y: 0}, complete: false})
+    );
 
     update(players, 10000);
 

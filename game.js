@@ -28,7 +28,7 @@ const textures = {
   'command-center': PIXI.Texture.fromImage('sprites/command-center.png'),
   extractor: PIXI.Texture.fromImage('sprites/extractor.png'),
   bunny: PIXI.Texture.fromImage('sprites/bunny.png'),
-  barracks: PIXI.Texture.fromImage('sprites/barracks.png'),
+  barracks: PIXI.Texture.fromImage('sprites/barracks.png')
 };
 
 var backgroundTexture = PIXI.Texture.fromImage('sprites/ground.png');
@@ -63,9 +63,9 @@ function getMousePosition () {
 Rx.DOM.fromEvent(document.body, 'mousedown')
   .filter(ev => ev.which === 3)
   .map(getMousePosition)
-  .forEach(sendCommand);
+  .forEach(dispatchCommand);
 
-function sendCommand (movePosition) {
+function dispatchCommand (movePosition) {
   let command = 'orderMove';
   let action;
 
@@ -77,8 +77,14 @@ function sendCommand (movePosition) {
     buildingToBeBuilt = null;
   }
 
-  socket.emit('command', command, selectedUnit.entity.id, movePosition, action);
+  sendCommand(command, selectedUnit.entity.id, movePosition, action);
+
 }
+
+function sendCommand (command, unitId, position, action) {
+  socket.emit('command', command, unitId, position, action);
+}
+
 
 window.moveCamera = moveCamera;
 
@@ -355,7 +361,7 @@ function updateActionBar (possibleActions) {
   actionButtons = [];
 
   possibleActions.forEach((action, index) => {
-    const button = new PIXI.Text(`${action.command} ${action.buildingType} ($${action.cost})`, {
+    const button = new PIXI.Text(`${action.command} ${action.buildingType || action.unitType} ($${action.cost})`, {
       font: '14px VT323',
       fill: '#FFF'
     });
@@ -366,6 +372,11 @@ function updateActionBar (possibleActions) {
     button.position = new PIXI.Point(index * 130 + 5, 200);
 
     button.click = () => {
+      if (action.command === 'train') {
+        sendCommand('train', selectedUnit.entity.id, {}, action);
+        return false;
+      }
+
       buildingToBeBuilt = {
         sprite: new PIXI.Sprite(textures[action.buildingType]),
         action

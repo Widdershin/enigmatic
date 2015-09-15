@@ -14,7 +14,11 @@ const buildings = {
 
   'barracks': {
     health: 800,
-    buildTime: 20 * SECONDS
+    buildTime: 20 * SECONDS,
+    trainingProgress: 0,
+    possibleActions: [
+      {command: 'train', unitType: 'marine', cost: 30, buildTime: 5000},
+    ]
   }
 };
 
@@ -22,7 +26,9 @@ function Building (type, args) {
   const defaultArgs = {
     type,
     complete: true,
-    id: getId()
+    id: getId(),
+    waypoints: [],
+    incomingMessages: []
   };
 
   return Object.assign({}, buildings[type], defaultArgs, args);

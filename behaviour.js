@@ -21,9 +21,28 @@ function move (player, deltaTime, action, unit) {
   return distance(action.position, unit.position) < 3;
 }
 
+function train (player, deltaTime, action, building) {
+  building.trainingProgress += deltaTime;
+
+  if (building.trainingProgress > action.details.buildTime) {
+    player.units.push({
+      id: getId(),
+      type: 'marine',
+      health: 80,
+      position: {x: building.position.x, y: building.position.y + 40},
+      incomingMessages: [],
+      waypoints: []
+    });
+
+    return true;
+  }
+
+  return false;
+}
+
 module.exports = {
   move,
-
+  train,
   build (player, deltaTime, action, unit) {
     if (distance(unit.position, action.position) > 2) {
       move(player, deltaTime, action, unit);
