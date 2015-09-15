@@ -69,7 +69,9 @@ describe('build', () => {
     position: {
       x: 0,
       y: 0
-    }
+    },
+
+    waypoints: []
   };
 
   const action = {
@@ -104,8 +106,12 @@ describe('build', () => {
     assert.equal(player.buildings[0].type, action.details.buildingType);
     assert.equal(player.buildings[0].complete, false);
 
-    behaviours.build(player, action.details.buildTime + 10, action, unit);
+    let done = behaviours.build(player, action.details.buildTime + 10, action, unit);
 
     assert.equal(player.buildings[0].complete, true);
+
+    behaviours.build(player, 1, action, unit);
+
+    assert.equal(unit.waypoints[0].action, 'move');
   });
 });

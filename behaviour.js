@@ -46,14 +46,17 @@ module.exports = {
       return false;
     }
 
-    if (building.complete) {
-      return true;
-    }
-
     building.progress += deltaTime;
 
     if (building.progress >= action.details.buildTime) {
       building.complete = true;
+
+      unit.waypoints.push({
+        action: 'move',
+        position: {x: action.position.x, y: action.position.y + 60}
+      });
     }
+
+    return building.complete;
   }
 };
