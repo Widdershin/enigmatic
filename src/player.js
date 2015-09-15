@@ -1,4 +1,5 @@
 const getId = require('./get-id');
+const Building = require('./buildings');
 
 const commandCenterSpawnPoint = (function () {
   const spawnPoints = [
@@ -19,8 +20,8 @@ const commandCenterSpawnPoint = (function () {
 
 function startingBuildings (baseCenter) {
   return [
-    {id: getId(), type: 'command-center', health: 1000, position: baseCenter, complete: true},
-    {id: getId(), type: 'extractor', health: 600, position: {x: baseCenter.x - 75, y: baseCenter.y - 30}, complete: true}
+    Building('command-center', {position: baseCenter}),
+    Building('extractor', {position: {x: baseCenter.x - 75, y: baseCenter.y - 30}})
   ];
 }
 

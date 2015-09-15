@@ -1,11 +1,3 @@
-const getId = (function () {
-  let count = 0;
+const uuid = require('node-uuid');
 
-  return () => {
-    count += 1;
-
-    return count;
-  };
-}());
-
-module.exports = getId;
+module.exports = uuid.v4;
