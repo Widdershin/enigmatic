@@ -5,12 +5,20 @@ const Player = require('../src/Player');
 const assert = require('assert');
 
 describe('Player', () => {
-  it('receives resources every update per extractor', () => {
+  it('receives resources every update per complete extractor', () => {
     const player = Player('test');
 
     const players = {test: player};
 
-    const oldSpaceBucksAmount = player.spaceBucks;
+    let oldSpaceBucksAmount = player.spaceBucks;
+
+    update(players, 10000);
+
+    assert.equal(player.spaceBucks, oldSpaceBucksAmount + 10);
+
+    oldSpaceBucksAmount = player.spaceBucks;
+
+    player.buildings.push({type: 'extractor', position: {x: 0, y: 0}, complete: false});
 
     update(players, 10000);
 

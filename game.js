@@ -363,7 +363,7 @@ function updateActionBar (possibleActions) {
     button.interactive = true;
     camera.addChild(button);
 
-    button.position = new PIXI.Point(index * 30 + 5, 200);
+    button.position = new PIXI.Point(index * 130 + 5, 200);
 
     button.click = () => {
       buildingToBeBuilt = {

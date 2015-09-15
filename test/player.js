@@ -17,6 +17,7 @@ describe('Player', () => {
 
   it('starts with an extractor', () => {
     assert.equal(player.buildings[1].type, 'extractor');
+    assert.equal(player.buildings[1].complete, true);
   });
 });
 

@@ -47,6 +47,7 @@ function update (players, deltaTime, unitUpdateCallback) {
 
     player.spaceBucks += player.buildings
       .filter(building => building.type === 'extractor')
+      .filter(building => building.complete)
       .length * deltaTime * EXTRACTOR_INCOME;
   });
 }
