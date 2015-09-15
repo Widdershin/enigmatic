@@ -42,6 +42,7 @@ const commands = {
   },
 
   train (players, player, unitId, position, action) {
+    player.spaceBucks -= action.cost;
     const building = player.buildings.find(building => building.id === unitId);
 
     building.incomingMessages.push({
