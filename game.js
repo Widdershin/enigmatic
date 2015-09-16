@@ -28,7 +28,9 @@ const textures = {
   'command-center': PIXI.Texture.fromImage('sprites/command-center.png'),
   extractor: PIXI.Texture.fromImage('sprites/extractor.png'),
   bunny: PIXI.Texture.fromImage('sprites/bunny.png'),
-  barracks: PIXI.Texture.fromImage('sprites/barracks.png')
+  barracks: PIXI.Texture.fromImage('sprites/barracks.png'),
+  marine: PIXI.Texture.fromImage('sprites/marine.png'),
+  worker: PIXI.Texture.fromImage('sprites/worker.png')
 };
 
 var backgroundTexture = PIXI.Texture.fromImage('sprites/ground.png');
@@ -227,7 +229,7 @@ function renderUnits (units) {
     let unitSprite = unitSprites[unit.id];
 
     if (unitSprite === undefined) {
-      unitSprite = unitSprites[unit.id] = new PIXI.Sprite(textures.bunny);
+      unitSprite = unitSprites[unit.id] = new PIXI.Sprite(textures[unit.type]);
       unitSprite.interactive = true;
       unitSprite.anchor = new PIXI.Point(0.5, 0.5);
 

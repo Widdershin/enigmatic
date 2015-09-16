@@ -17,7 +17,7 @@ const buildings = {
     buildTime: 20 * SECONDS,
     trainingProgress: 0,
     possibleActions: [
-      {command: 'train', unitType: 'marine', cost: 30, buildTime: 5000},
+      {command: 'train', unitType: 'marine', cost: 30, buildTime: 5000}
     ]
   }
 };
