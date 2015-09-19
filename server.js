@@ -17,6 +17,11 @@ const commands = {
   orderMove (players, player, unitId, newPosition) {
     const unit = player.units.find(unit => unit.id === unitId);
 
+    if (unit === undefined) {
+      console.log("received orderMove for unit that wasn't found");
+      return;
+    }
+
     unit.incomingMessages.push({
       position: newPosition,
       action: 'move',
