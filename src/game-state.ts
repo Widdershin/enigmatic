@@ -54,6 +54,7 @@ function makeGameState (): GameState {
       {id: 'red'},
       {id: 'blue'}
     ],
+
     settlements: [
       {type: 'base', ownerId: 'red', position: {row: 0, column: 2}},
       {type: 'base', ownerId: 'blue', position: {row: 4, column: 2}},
@@ -61,6 +62,7 @@ function makeGameState (): GameState {
       {type: 'village', ownerId: null, position: {row: 2, column: 0}},
       {type: 'village', ownerId: null, position: {row: 2, column: 4}}
     ],
+
     units: [
       {type: 'soldier', ownerId: 'red', position: {row: 0, column: 2}},
       {type: 'soldier', ownerId: 'red', position: {row: 0, column: 2}},
@@ -70,8 +72,14 @@ function makeGameState (): GameState {
   }
 }
 
-export function update (state: GameState, actions: Action[]) {
-  return actions.reduce(applyAction, state);
+export function update (state: GameState, actions: Action[]): GameState {
+  const stateAfterActions = actions.reduce(applyAction, state);
+
+  return {
+    ...stateAfterActions,
+
+    settlements: claimCities(stateAfterActions)
+  }
 }
 
 const reducers = {
@@ -87,6 +95,30 @@ const reducers = {
 
     return state;
   }
+}
+
+function claimCities (state: GameState): Settlement[] {
+  return state.settlements.map(settlement => {
+    const troopsInSettlement = state.units.filter((unit: Unit) => samePosition(unit.position, settlement.position));
+
+    let maxTroops = 0;
+    let playerWithMostTroops = null;
+
+    state.players.forEach((player: PlayerState) => {
+      const troopCount = troopsInSettlement.filter(troop => troop.ownerId === player.id).length;
+
+      if (troopCount > maxTroops) {
+        playerWithMostTroops = player.id;
+        maxTroops = troopCount;
+      }
+    });
+
+    if (playerWithMostTroops) {
+      settlement.ownerId = playerWithMostTroops;
+    }
+
+    return settlement;
+  });
 }
 
 function samePosition (a: Position, b: Position): boolean {

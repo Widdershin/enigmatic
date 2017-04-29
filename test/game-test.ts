@@ -82,6 +82,8 @@ describe('enigmatic', () => {
 
   describe('performing actions', () => {
     it('allows moving troops', () => {
+      const state = makeGameState();
+
       const actions : Action[] = [
         {
           type: 'move',
@@ -115,6 +117,139 @@ describe('enigmatic', () => {
        |   |   |   |   |   |
        ---------------------
        |   |   | b1|   |   |
+       |   |   | # |   |   |
+       ---------------------
+      `);
+    });
+
+    it('allows moving multiple troops', () => {
+      const actions : Action[] = [
+        {
+          type: 'move',
+          numberOfTroops: 2,
+          playerId: 'blue',
+          from: {
+            row: 4,
+            column: 2
+          },
+          direction: {
+            row: -1,
+            column: 1
+          }
+        },
+        {
+          type: 'move',
+          numberOfTroops: 2,
+          playerId: 'red',
+          from: {
+            row: 0,
+            column: 2
+          },
+          direction: {
+            row: 1,
+            column: 0
+          }
+        }
+      ];
+
+      const stateAfterActions = update(state, actions);
+
+      assertState(stateAfterActions, `
+       ---------------------
+       |   |   | r |   |   |
+       |   |   | # |   |   |
+       ---------------------
+       |   |   | r2|   |   |
+       |   |   |   |   |   |
+       ---------------------
+       |   |   |   |   |   |
+       | ^ |   | @ |   | ^ |
+       ---------------------
+       |   |   |   | b2|   |
+       |   |   |   |   |   |
+       ---------------------
+       |   |   | b |   |   |
+       |   |   | # |   |   |
+       ---------------------
+      `);
+    });
+
+    it('allows moving multiple troops', () => {
+      const actions : Action[] = [
+        {
+          type: 'move',
+          numberOfTroops: 2,
+          playerId: 'blue',
+          from: {
+            row: 4,
+            column: 2
+          },
+          direction: {
+            row: -1,
+            column: 1
+          }
+        },
+        {
+          type: 'move',
+          numberOfTroops: 2,
+          playerId: 'red',
+          from: {
+            row: 0,
+            column: 2
+          },
+          direction: {
+            row: 1,
+            column: 0
+          }
+        }
+      ];
+
+      const nextActions : Action[] = [
+        {
+          type: 'move',
+          numberOfTroops: 2,
+          playerId: 'blue',
+          from: {
+            row: 3,
+            column: 3
+          },
+          direction: {
+            row: -1,
+            column: 1
+          }
+        },
+        {
+          type: 'move',
+          numberOfTroops: 2,
+          playerId: 'red',
+          from: {
+            row: 1,
+            column: 2
+          },
+          direction: {
+            row: 1,
+            column: 0
+          }
+        }
+      ];
+
+      const stateAfterActions = [actions, nextActions].reduce((state, actions) => update(state, actions), state);
+
+      assertState(stateAfterActions, `
+       ---------------------
+       |   |   | r |   |   |
+       |   |   | # |   |   |
+       ---------------------
+       |   |   |   |   |   |
+       |   |   |   |   |   |
+       ---------------------
+       |   |   | r2|   | b2|
+       | ^ |   | @ |   | ^ |
+       ---------------------
+       |   |   |   |   |   |
+       |   |   |   |   |   |
+       ---------------------
+       |   |   | b |   |   |
        |   |   | # |   |   |
        ---------------------
       `);

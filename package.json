@@ -4,6 +4,9 @@
   "description": "Enigmatic is a real time strategy game about code breaking and encryption ",
   "main": "index.js",
   "scripts": {
+    "client": "budo client.ts:bundle.js --live -- -p tsify",
+    "server": "nodemon --exec './node_modules/.bin/ts-node' ./server.ts",
+    "start": "npm run server & npm run client",
     "test": "mocha --compilers ts:ts-node/register test/*.ts",
     "test/auto": "mocha --compilers ts:ts-node/register --watch -R min test/*.ts"
   },
@@ -22,15 +25,19 @@
     "@cycle/run": "^3.1.0",
     "@cycle/time": "^0.8.0",
     "express": "^4.13.3",
+    "ws": "^2.3.1",
     "xstream": "^10.6.0"
   },
   "devDependencies": {
     "@types/mocha": "^2.2.41",
     "@types/node": "^7.0.14",
+    "@types/ws": "0.0.40",
     "babelify": "^6.3.0",
     "browserify": "^11.2.0",
     "browserify-hmr": "^0.2.2",
+    "budo": "^10.0.3",
     "mocha": "^3.3.0",
+    "nodemon": "^1.11.0",
     "ts-node": "^3.0.2",
     "tsify": "^3.0.1",
     "typescript": "^2.3.2",
