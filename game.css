@@ -1,0 +1,72 @@
+
+html, body, .app {
+  margin: 0px;
+  background: black;
+  height: 100%;
+
+  color: white;
+}
+
+.game {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+}
+
+.row {
+  display: flex;
+}
+
+.cell {
+  background: limegreen;
+  width: 80px;
+  height: 80px;
+  margin: 1px;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+
+  font-size: 1.5em;
+}
+
+.arrow {
+  position: absolute;
+}
+
+.content {
+  position: absolute;
+  font-size: smaller;
+}
+
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  height: 400px;
+  font-size: larger;
+  padding: 10px;
+}
+
+.purchases {
+  display: flex;
+  flex-direction: column;
+}
+
+.purchase {
+  font-size: larger;
+  line-height: 50px;
+  margin: 10px;
+}
+
+.cell.hover {
+  border: 2px solid yellow;
+  box-sizing: border-box;
+}
+
+.cell.selected {
+  border: 2px solid white;
+  box-sizing: border-box;
+}
+

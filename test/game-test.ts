@@ -254,6 +254,40 @@ describe('enigmatic', () => {
        ---------------------
       `);
     });
+
+    it('allows purchasing troops', () => {
+      const state = makeGameState();
+      const actions : Action[] = [
+        {
+          type: 'purchase',
+          playerId: 'blue',
+          purchaseType: 'soldier',
+          quantity: 2,
+          cost: 1
+        }
+      ];
+
+      const stateAfterActions = [actions].reduce((state, actions) => update(state, actions), state);
+
+      assertState(stateAfterActions, `
+       ---------------------
+       |   |   | r2|   |   |
+       |   |   | # |   |   |
+       ---------------------
+       |   |   |   |   |   |
+       |   |   |   |   |   |
+       ---------------------
+       |   |   |   |   |   |
+       | ^ |   | @ |   | ^ |
+       ---------------------
+       |   |   |   |   |   |
+       |   |   |   |   |   |
+       ---------------------
+       |   |   | b4|   |   |
+       |   |   | # |   |   |
+       ---------------------
+      `);
+    });
   });
 
   describe('stripWhitespace', () => {

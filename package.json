@@ -24,6 +24,7 @@
     "@cycle/dom": "^17.1.0",
     "@cycle/run": "^3.1.0",
     "@cycle/time": "^0.8.0",
+    "deep-equals": "0.0.1",
     "express": "^4.13.3",
     "ws": "^2.3.1",
     "xstream": "^10.6.0"

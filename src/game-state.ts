@@ -21,6 +21,7 @@ export type PlayerId = string;
 
 export type PlayerState = {
   id: PlayerId;
+  money: number;
 }
 
 export type Settlement = {
@@ -35,7 +36,7 @@ export type Unit = {
   position: Position;
 }
 
-export type Action = MoveAction;
+export type Action = MoveAction | PurchaseAction;
 
 export type MoveAction = {
   type: 'move',
@@ -45,14 +46,22 @@ export type MoveAction = {
   numberOfTroops: number
 }
 
+export type PurchaseAction = {
+  type: 'purchase',
+  purchaseType: 'soldier' | 'encryption' | 'decryption',
+  playerId: PlayerId;
+  cost: number,
+  quantity: number
+}
+
 function makeGameState (): GameState {
   return {
     width: 5,
     height: 5,
 
     players: [
-      {id: 'red'},
-      {id: 'blue'}
+      {id: 'red', money: 3},
+      {id: 'blue', money: 3}
     ],
 
     settlements: [
@@ -83,7 +92,8 @@ export function update (state: GameState, actions: Action[]): GameState {
 }
 
 const reducers = {
-  move (state: GameState, action: Action): GameState {
+  move (state: GameState, moveAction: Action): GameState {
+    const action = moveAction as MoveAction;
     const possibleSoldiersToMove = state.units.filter((unit: Unit) =>
       unit.ownerId === action.playerId && samePosition(unit.position, action.from)
     );
@@ -92,6 +102,25 @@ const reducers = {
       unit.position.row += action.direction.row;
       unit.position.column += action.direction.column;
     });
+
+    return state;
+  },
+
+  purchase (state: GameState, purchaseAction: Action): GameState {
+    const action = purchaseAction as PurchaseAction;
+    const playerId = action.playerId;
+    const base = (state.settlements.find(settlement => settlement.ownerId === playerId && settlement.type === 'base') as Settlement);
+    let quantity = action.quantity;
+
+    while (quantity > 0) {
+      state.units.push({
+        type: 'soldier',
+        ownerId: playerId,
+        position: {...base.position}
+      });
+
+      quantity--;
+    }
 
     return state;
   }
@@ -121,7 +150,7 @@ function claimCities (state: GameState): Settlement[] {
   });
 }
 
-function samePosition (a: Position, b: Position): boolean {
+export function samePosition (a: Position, b: Position): boolean {
   return a.row === b.row && a.column === b.column;
 }
 

@@ -1,7 +1,11 @@
-import {makeDOMDriver, DOMSource, VNode, div} from '@cycle/dom';
+import {makeDOMDriver, DOMSource, VNode, pre, div} from '@cycle/dom';
 import {timeDriver, TimeSource} from '@cycle/time';
 import {run} from '@cycle/run';
 import xs, {Stream} from 'xstream';
+
+import {Client} from './src/client';
+
+import {samePosition, GameState, Position, Settlement, Unit} from './src/game-state';
 
 type Message = {
 }
@@ -18,6 +22,7 @@ function makeWebSocketDriver (uri: string) {
         socket.onopen = function () {
           sink$.addListener({
             next (message: Message) {
+              console.log('sending:', JSON.stringify(message));
               socket.send(JSON.stringify(message));
             },
 
@@ -31,6 +36,7 @@ function makeWebSocketDriver (uri: string) {
         }
 
         socket.onmessage = function handleMessage(message: MessageEvent) {
+          console.log('Received', message.data);
           listener.next(JSON.parse(message.data));
         }
       },
@@ -56,25 +62,9 @@ const drivers = {
   Log: logDriver
 }
 
-type Sources = {
-  Socket: Stream<Message>;
-  DOM: DOMSource;
-  Time: TimeSource;
+function main (sources: any): any {
+  return Client(sources);
 }
 
-type Sinks = {
-  DOM: Stream<VNode>;
-  Socket: Stream<Message>;
-}
-
-function view (message: Message) {
-  return div('.message', message);
-}
-function main (sources: Sources): Sinks {
-  return {
-    DOM: sources.Socket.debug('wow').map(view),
-    Socket: xs.of('hi')
-  }
-}
 
 run(main, drivers);

@@ -2,18 +2,19 @@ import {timeDriver, TimeSource} from '@cycle/time';
 import {run} from '@cycle/run';
 import {Server} from 'ws';
 import xs, {Stream} from 'xstream';
+import dropRepeats from 'xstream/extra/dropRepeats';
 
-type Message = {
-}
+import {makeGameState, update, GameState, PlayerId, Action} from './src/game-state';
+import {MessageToServer, MessageFromServer} from './common-types';
 
 function makeWebSocketServerDriver (port: number) {
-  return function webSocketServerDriver (sink$: Stream<Message>): Stream<Message> {
+  return function webSocketServerDriver (sink$: Stream<MessageFromServer>): Stream<MessageToServer> {
     const server = new Server({
       port
     });
 
     console.log(`Listening on port :${port}`);;
-    const sources$ = xs.create<Message>();
+    const sources$ = xs.create<MessageToServer>();
 
     (server as any).on('connection', function connection (ws: any) {
       console.log(`New connection`);
@@ -22,18 +23,19 @@ function makeWebSocketServerDriver (port: number) {
 
         try {
           parsedMessage = JSON.parse(message);
-          console.log('received: %s', parsedMessage);
+          console.log('received: %s', message);
         } catch (e) {
           console.error(`Failed to parse "${message}"`);
         }
 
         if (parsedMessage) {
+          parsedMessage.playerId = 'blue';
           sources$.shamefullySendNext(parsedMessage);
         }
       });
 
       const listener = {
-        next (message: Message) {
+        next (message: MessageFromServer) {
           ws.send(JSON.stringify(message));
         },
 
@@ -62,18 +64,100 @@ const drivers = {
 }
 
 type Sources = {
-  Socket: Stream<Message>;
+  Socket: Stream<MessageToServer>;
   Time: TimeSource;
 }
 
 type Sinks = {
-  Socket: Stream<Message>;
+  Socket: Stream<MessageFromServer>;
+}
+
+type State = {
+  gameState: GameState,
+  actions: {[playerId: string]: Action[]}
+}
+
+type Reducer<T> = (state: T) => T;
+
+
+function updateActions (message: MessageToServer) {
+  return function (state: State): State {
+    return {
+      ...state,
+      actions: {
+        ...state.actions,
+
+        [message.playerId as PlayerId]: message.actions
+      }
+    }
+  }
+}
+
+function applyReducer (state: State, reducer: Reducer<State>) {
+  return reducer(state);
+}
+
+function processActions () {
+  return function (state: State): State {
+    return {
+      ...state,
+
+      gameState: Object
+        .keys(state.actions)
+        .map(key => state.actions[key])
+        .reduce((gameState: GameState, actions: Action[]) => update(gameState, actions), state.gameState),
+
+      actions: {}
+    }
+  }
 }
 
 function main (sources: Sources): Sinks {
+  const initialState = {
+    gameState: makeGameState(),
+    actions: {},
+    money: 3
+  };
+
+  const updateActions$ = sources.Socket
+    .filter(message => message.type === 'updateActions')
+    .map(updateActions);
+
+  const processAction$ = sources.Time.periodic(10000)
+    .map(processActions);
+
+  const reducer$ = xs.merge(
+    updateActions$,
+    processAction$
+  );
+
+  const state$ = reducer$.fold(applyReducer, initialState);
+
+  const updateActionMessage$ = state$
+    .map(state => state.actions)
+    .compose(dropRepeats((a: any, b: any) => JSON.stringify(a) === JSON.stringify(b)))
+    .map(actions => ({type: 'updateActions', actions}));
+
+  const processActionsMessage$ = processAction$
+    .mapTo({type: 'processActions'});
+
+  const updateGameStateMessage$ = state$
+    .map(state => state.gameState)
+    .map(gameState => ({type: 'updateGameState', gameState}))
+    .debug('sending stuff');
+
+
+  const Socket = xs.merge(
+    updateActionMessage$,
+
+    updateGameStateMessage$,
+
+    processActionsMessage$
+  );
+
   return {
-    Socket: sources.Time.periodic(1000)
-  }
+    Socket
+  };
 }
 
 run(main, drivers);
