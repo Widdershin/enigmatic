@@ -240,18 +240,25 @@ function cellClickReducer (clickPosition: Position): Reducer<State> {
         }
       }
     } else {
-      return {
-        ...state,
+      const distance = subtract(state.selection.position, clickPosition);
+      const distanceFromSelection = subtract(state.selection.position, clickPosition);
 
-        actions: state.actions.concat({
-          type: 'move',
-          playerId: 'blue',
-          from: state.selection.position,
-          direction: (subtract(clickPosition, state.selection.position) as Direction),
-          numberOfTroops: state.selection.numberOfTroops
-        }),
+      if (Math.max(Math.abs(distanceFromSelection.row), Math.abs(distanceFromSelection.column)) <= 1) {
+        return {
+          ...state,
 
-        selection: null
+          actions: state.actions.concat({
+            type: 'move',
+            playerId: 'blue',
+            from: state.selection.position,
+            direction: (subtract(clickPosition, state.selection.position) as Direction),
+            numberOfTroops: state.selection.numberOfTroops
+          }),
+
+          selection: null
+        }
+      } else {
+         return { ...state };
       }
     }
   }

@@ -45,6 +45,37 @@ describe('Client', () => {
     Time.run(done);
   });
 
+  it('prevents invalid moves', (done) => {
+    const Time = mockTimeSource();
+    const {diagram: d} = Time;
+
+    const selectClickEvent = {currentTarget: {dataset: {row: '4', column: '2'}}};
+    const moveClickEvent = {currentTarget: {dataset: {row: '2', column: '1'}}};
+
+    const initialGameState = makeGameState();
+
+    const cellClick$ = d(`---s---m---|`, {s: selectClickEvent, m: moveClickEvent});
+    const expected$  = d(`n--n-------|`, {n: []});
+    const socket$    = d(`i----------|`, {i: {type: 'updateGameState', gameState: initialGameState}});
+
+    const DOM = mockDOMSource({
+      '.cell': {
+        'click': cellClick$
+      }
+    });
+
+    const Socket = socket$;
+
+    const app = Client({Time, DOM, Socket});
+
+    Time.assertEqual(
+      app.localState$.map(state => state.actions).drop(1),
+      expected$
+    );
+
+    Time.run(done);
+  });
+
   it('allows purchases', (done) => {
     const Time = mockTimeSource();
     const {diagram: d} = Time;

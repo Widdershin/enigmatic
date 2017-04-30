@@ -8,15 +8,18 @@ import {makeGameState, update, GameState, PlayerId, Action} from './src/game-sta
 import {MessageToServer, MessageFromServer} from './common-types';
 
 function makeWebSocketServerDriver (port: number) {
-  return function webSocketServerDriver (sink$: Stream<MessageFromServer>): Stream<MessageToServer> {
+  return function webSocketServerDriver (sink$: Stream<MessageFromServer>): SocketSource {
     const server = new Server({
       port
     });
 
     console.log(`Listening on port :${port}`);;
     const sources$ = xs.create<MessageToServer>();
+    const connection$ = xs.create<string>();
 
     (server as any).on('connection', function connection (ws: any) {
+      connection$.shamefullySendNext('');
+
       console.log(`New connection`);
       ws.on('message', function incoming (message: any) {
         let parsedMessage;
@@ -54,7 +57,10 @@ function makeWebSocketServerDriver (port: number) {
       });
     });
 
-    return sources$;
+    return {
+      messages () { return sources$; },
+      connections () { return connection$; }
+    }
   }
 }
 
@@ -63,8 +69,13 @@ const drivers = {
   Socket: makeWebSocketServerDriver(8080)
 }
 
+type SocketSource = {
+  messages (): Stream<MessageToServer>;
+  connections (): Stream<string>;
+}
+
 type Sources = {
-  Socket: Stream<MessageToServer>;
+  Socket: SocketSource
   Time: TimeSource;
 }
 
@@ -120,6 +131,7 @@ function main (sources: Sources): Sinks {
   };
 
   const updateActions$ = sources.Socket
+    .messages()
     .filter(message => message.type === 'updateActions')
     .map(updateActions);
 
@@ -144,6 +156,7 @@ function main (sources: Sources): Sinks {
   const updateGameStateMessage$ = state$
     .map(state => state.gameState)
     .map(gameState => ({type: 'updateGameState', gameState}))
+    .remember()
     .debug('sending stuff');
 
 
@@ -151,6 +164,8 @@ function main (sources: Sources): Sinks {
     updateActionMessage$,
 
     updateGameStateMessage$,
+
+    sources.Socket.connections().map(() => updateGameStateMessage$.take(1)).flatten(),
 
     processActionsMessage$
   );
