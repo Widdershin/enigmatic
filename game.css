@@ -70,3 +70,6 @@ html, body, .app {
   box-sizing: border-box;
 }
 
+.cell.hidden {
+  filter: brightness(70%);
+}

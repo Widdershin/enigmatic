@@ -34,6 +34,29 @@ function manyMoney (n: number) {
   return new Array(n).fill(moneyEmoji).join('');
 }
 
+const directions = [
+  {row: -1, column: 0}, // N
+  {row: -1, column: 1}, // NW
+  {row: 0, column: 1}, // W
+  {row: 1, column: 1}, // SW
+  {row: 1, column: 0}, // S
+  {row: 1, column: -1}, // SE
+  {row: 0, column: -1}, // E
+  {row: -1, column: -1}, // NE
+]
+
+function mooreNeighbourhood (position: Position): Position[] {
+  return directions.map(direction => add(direction, position));
+}
+
+function flatten (arr: any): any {
+  if (typeof arr.reduce !== 'function') {
+    return arr;
+  }
+
+  return arr.reduce((acc: any, val: any) => acc.concat(flatten(val)), []);
+}
+
 function view ([state, localState, hoverPosition]: [GameState, State, Position | null]): VNode {
   const player = state.players.find(player => player.id === 'blue') as PlayerState;
   const purchases = localState.actions
@@ -43,8 +66,23 @@ function view ([state, localState, hoverPosition]: [GameState, State, Position |
     .map((action: PurchaseAction) => action.cost * action.quantity)
     .reduce((acc, val) => acc + val, 0);
 
+  const unitPositions = state.units
+    .filter(unit => unit.ownerId === player.id)
+    .map(unit => unit.position);
+
+  const settlementPositions = state.units
+    .filter(settlement => settlement.ownerId === player.id)
+    .map(unit => unit.position);;
+
+  const visibleTiles : Position[] = flatten([
+    unitPositions,
+    settlementPositions,
+    unitPositions.map(mooreNeighbourhood),
+    settlementPositions.map(mooreNeighbourhood),
+  ]);
+
   return div('.game', [
-    renderGameState(state, localState, hoverPosition),
+    renderGameState(state, localState, hoverPosition, visibleTiles),
     div('.sidebar', [
       div('.name', 'blue'),
       div('.money', manyMoney(player.money - amountSpent)),
@@ -77,19 +115,19 @@ function add (a: Position, b: Position): Position {
   }
 }
 
-function renderGameState (state: GameState, localState: State, hoverPosition: Position | null): VNode {
+function renderGameState (state: GameState, localState: State, hoverPosition: Position | null, visibleTiles: Position[]): VNode {
   const rows = Array(state.height).fill(Array(state.width).fill(0));
 
   return (
     div('.state', rows.map((cells: any[], row: number) =>
       div('.row', cells.map((_: any, column: number) =>
-        renderCell(state, localState, {row, column}, !!(hoverPosition && samePosition(hoverPosition, {row, column})))
+        renderCell(state, localState, {row, column}, !!(hoverPosition && samePosition(hoverPosition, {row, column})), visibleTiles)
       ))
     ))
   )
 }
 
-function renderCell (state: GameState, localState: State, position: Position, isBeingHovered: boolean): VNode {
+function renderCell (state: GameState, localState: State, position: Position, isBeingHovered: boolean, visibleTiles: Position[]): VNode {
   const settlement = state.settlements.find((settlement: Settlement) => samePosition(settlement.position, position));
   const units = state.units.filter((unit: Unit) => samePosition(unit.position, position));
   const unitsOrderedToMoveHere = localState.actions
@@ -157,11 +195,14 @@ function renderCell (state: GameState, localState: State, position: Position, is
 
   const troopsCount = units.length - unitsOrderedToMoveAway;
 
+  const visible = !!visibleTiles.find(visiblePosition => samePosition(position, visiblePosition));
+
   return (
-    div('.cell', {class: {selected: isSelected, hover: isBeingHovered && localState.selection}, dataset: {row: position.row.toString(), column: position.column.toString()}}, [
+    div('.cell', {class: {hidden: !visible, selected: isSelected, hover: isBeingHovered && localState.selection}, dataset: {row: position.row.toString(), column: position.column.toString()}}, [
       ...arrows,
+
       div('.settlement', {style}, settlement ? renderSettlement(settlement) : ''),
-      div('.unit', {style}, troopsCount > 0 ? `💂 x ${troopsCount}` : '')
+      visible ? div('.unit', {style}, troopsCount > 0 ? `💂 x ${troopsCount}` : '') : ''
     ])
   )
 }
