@@ -156,8 +156,7 @@ function main (sources: Sources): Sinks {
   const updateGameStateMessage$ = state$
     .map(state => state.gameState)
     .map(gameState => ({type: 'updateGameState', gameState}))
-    .remember()
-    .debug('sending stuff');
+    .remember();
 
 
   const Socket = xs.merge(

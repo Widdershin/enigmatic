@@ -1,7 +1,7 @@
 import {makeGameState, update, GameState, PlayerId, Action} from './src/game-state';
 
 export type MessageToServer = UpdatePlayerActionsMessage;
-export type MessageFromServer = UpdateActionsMessage | UpdateGameStateMessage | ProcessActionsMessage;
+export type MessageFromServer = UpdateActionsMessage | UpdateGameStateMessage | ProcessActionsMessage | SetTimerMessage;
 
 export type UpdatePlayerActionsMessage = {
   type: string;
@@ -21,4 +21,9 @@ export type UpdateGameStateMessage = {
 
 export type ProcessActionsMessage = {
   type: string;
+}
+
+export type SetTimerMessage = {
+  type: string;
+  timer: number;
 }

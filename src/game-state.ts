@@ -24,8 +24,10 @@ export type PlayerState = {
   money: number;
 }
 
+export type SettlementType = 'base' | 'city' | 'village';
+
 export type Settlement = {
-  type: 'base' | 'city' | 'village';
+  type: SettlementType;
   ownerId: null | PlayerId;
   position: Position;
 }
@@ -81,14 +83,15 @@ function makeGameState (): GameState {
   }
 }
 
+const everyTurnReducers = [
+  claimCities,
+  claimIncome
+]
+
 export function update (state: GameState, actions: Action[]): GameState {
-  const stateAfterActions = actions.reduce(applyAction, state);
+  const updatedState = actions.reduce(applyAction, state);
 
-  return {
-    ...stateAfterActions,
-
-    settlements: claimCities(stateAfterActions)
-  }
+  return everyTurnReducers.reduce((state, reducer) => reducer(state), updatedState);
 }
 
 const reducers = {
@@ -109,6 +112,7 @@ const reducers = {
   purchase (state: GameState, purchaseAction: Action): GameState {
     const action = purchaseAction as PurchaseAction;
     const playerId = action.playerId;
+    const player = state.players.find(player => player.id === playerId) as PlayerState;
     const base = (state.settlements.find(settlement => settlement.ownerId === playerId && settlement.type === 'base') as Settlement);
     let quantity = action.quantity;
 
@@ -119,6 +123,8 @@ const reducers = {
         position: {...base.position}
       });
 
+      player.money -= action.cost;
+
       quantity--;
     }
 
@@ -126,8 +132,8 @@ const reducers = {
   }
 }
 
-function claimCities (state: GameState): Settlement[] {
-  return state.settlements.map(settlement => {
+function claimCities (state: GameState): GameState {
+  const settlements = state.settlements.map(settlement => {
     const troopsInSettlement = state.units.filter((unit: Unit) => samePosition(unit.position, settlement.position));
 
     let maxTroops = 0;
@@ -148,6 +154,49 @@ function claimCities (state: GameState): Settlement[] {
 
     return settlement;
   });
+
+  return {
+    ...state,
+
+    settlements
+  }
+}
+
+function settlementIncome (settlement: Settlement): number {
+  if (settlement.type === 'base') {
+    return 3;
+  }
+
+  if (settlement.type === 'city') {
+    return 2;
+  }
+
+  if (settlement.type === 'village') {
+    return 1;
+  }
+
+  throw new Error(`strange settlement type: ${settlement.type}`);
+}
+
+function claimIncome (state: GameState): GameState {
+  const players = state.players.map(player => {
+    const income : number = state.settlements
+      .filter(settlement => settlement.ownerId === player.id)
+      .map(settlementIncome)
+      .reduce((acc, val) => acc + val, 0);
+
+      return {
+        ...player,
+
+        money: player.money + income
+      }
+  });
+
+  return {
+    ...state,
+
+    players
+  }
 }
 
 export function samePosition (a: Position, b: Position): boolean {

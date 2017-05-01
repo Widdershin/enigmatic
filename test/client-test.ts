@@ -1,9 +1,11 @@
 import * as assert from 'assert';
 import {mockDOMSource} from '@cycle/dom';
 import {mockTimeSource} from '@cycle/time';
+import dropRepeats from 'xstream/extra/dropRepeats';
 
 import {Client} from '../src/client';
 import {makeGameState} from '../src/game-state';
+
 
 describe('Client', () => {
   it('exists', (done) => {
@@ -23,9 +25,9 @@ describe('Client', () => {
 
     const initialGameState = makeGameState();
 
-    const cellClick$ = d(`---s---m---|`, {s: selectClickEvent, m: moveClickEvent});
-    const expected$  = d(`n--n---m---|`, {n: [], m: [expectedMoveEvent]});
-    const socket$    = d(`i----------|`, {i: {type: 'updateGameState', gameState: initialGameState}});
+    const cellClick$ = d(`---s---m---`, {s: selectClickEvent, m: moveClickEvent});
+    const expected$  = d(`n------m---`, {n: [], m: [expectedMoveEvent]});
+    const socket$    = d(`i----------`, {i: {type: 'updateGameState', gameState: initialGameState}});
 
     const DOM = mockDOMSource({
       '.cell': {
@@ -38,7 +40,7 @@ describe('Client', () => {
     const app = Client({Time, DOM, Socket});
 
     Time.assertEqual(
-      app.localState$.map(state => state.actions).drop(1),
+      app.localState$.map(state => state.actions).drop(1).compose(dropRepeats((a: any, b: any) => JSON.stringify(a) === JSON.stringify(b))),
       expected$
     );
 
@@ -54,9 +56,9 @@ describe('Client', () => {
 
     const initialGameState = makeGameState();
 
-    const cellClick$ = d(`---s---m---|`, {s: selectClickEvent, m: moveClickEvent});
-    const expected$  = d(`n--n-------|`, {n: []});
-    const socket$    = d(`i----------|`, {i: {type: 'updateGameState', gameState: initialGameState}});
+    const cellClick$ = d(`---s---m---`, {s: selectClickEvent, m: moveClickEvent});
+    const expected$  = d(`n----------`, {n: []});
+    const socket$    = d(`i----------`, {i: {type: 'updateGameState', gameState: initialGameState}});
 
     const DOM = mockDOMSource({
       '.cell': {
@@ -69,7 +71,7 @@ describe('Client', () => {
     const app = Client({Time, DOM, Socket});
 
     Time.assertEqual(
-      app.localState$.map(state => state.actions).drop(1),
+      app.localState$.map(state => state.actions).drop(1).compose(dropRepeats((a: any, b: any) => JSON.stringify(a) === JSON.stringify(b))),
       expected$
     );
 
@@ -98,9 +100,9 @@ describe('Client', () => {
       quantity: 2
     }
 
-    const purchaseClick$ = d(`---x---x---|`);
-    const socket$        = d(`i----------|`, {i: {type: 'updateGameState', gameState: initialGameState}});
-    const expected$      = d(`n--1---2---|`, {n: [], 1: [soldierPurchase], 2: [twoSoldierPurchase]});
+    const purchaseClick$ = d(`---x---x---`);
+    const socket$        = d(`i----------`, {i: {type: 'updateGameState', gameState: initialGameState}});
+    const expected$      = d(`n--1---2---`, {n: [], 1: [soldierPurchase], 2: [twoSoldierPurchase]});
 
     const DOM = mockDOMSource({
       '.purchase.soldier': {
@@ -113,7 +115,7 @@ describe('Client', () => {
     const app = Client({Time, DOM, Socket});
 
     Time.assertEqual(
-      app.localState$.map(state => state.actions.filter(action => action.type === 'purchase')).drop(1),
+      app.localState$.map(state => state.actions.filter(action => action.type === 'purchase')).drop(1).compose(dropRepeats((a: any, b: any) => JSON.stringify(a) === JSON.stringify(b))),
       expected$
     );
 

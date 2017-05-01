@@ -21,6 +21,7 @@ export type Sinks = {
 }
 
 export type State = {
+  timer: number,
   actions: Action[],
   gameState: null | GameState,
   selection: null | {position: Position, numberOfTroops: number}
@@ -31,7 +32,11 @@ type Reducer<T> = (state: T) => T;
 const moneyEmoji = String.fromCodePoint(0x1F4B0);
 
 function manyMoney (n: number) {
-  return new Array(n).fill(moneyEmoji).join('');
+  if (n > 3) {
+    return `${moneyEmoji} x ${n}`;
+  }
+
+  return n >= 0 ? new Array(n).fill(moneyEmoji).join(''): '';
 }
 
 const directions = [
@@ -55,6 +60,16 @@ function flatten (arr: any): any {
   }
 
   return arr.reduce((acc: any, val: any) => acc.concat(flatten(val)), []);
+}
+
+function renderTimer (time: number) {
+  const progress = 1 - time / 10000;
+
+  return (
+    div('.timer', [
+      div('.timer-progress', {style: {width: `${progress * 100}%`}})
+    ])
+  )
 }
 
 function view ([state, localState, hoverPosition]: [GameState, State, Position | null]): VNode {
@@ -82,7 +97,11 @@ function view ([state, localState, hoverPosition]: [GameState, State, Position |
   ]);
 
   return div('.game', [
-    renderGameState(state, localState, hoverPosition, visibleTiles),
+    div('.game-container', [
+      renderTimer(localState.timer),
+      renderGameState(state, localState, hoverPosition, visibleTiles),
+    ]),
+
     div('.sidebar', [
       div('.name', 'blue'),
       div('.money', manyMoney(player.money - amountSpent)),
@@ -202,7 +221,7 @@ function renderCell (state: GameState, localState: State, position: Position, is
       ...arrows,
 
       div('.settlement', {style}, settlement ? renderSettlement(settlement) : ''),
-      visible ? div('.unit', {style}, troopsCount > 0 ? `💂 x ${troopsCount}` : '') : ''
+      div('.unit', {style}, troopsCount > 0 ? `💂 x ${troopsCount}` : '')
     ])
   )
 }
@@ -221,6 +240,19 @@ function applyReducer (state: State, reducer: Reducer<State>): State {
 
 function purchaseSoldier (): Reducer<State> {
   return function (state: State): State {
+    const player = (state.gameState as GameState).players.find(player => player.id === 'blue') as PlayerState;
+
+    const purchases = state.actions
+      .filter(action => action.type === 'purchase')
+
+    const amountSpent = purchases
+      .map((action: PurchaseAction) => action.cost * action.quantity)
+      .reduce((acc, val) => acc + val, 0);
+
+    if (player.money - amountSpent === 0) {
+      return state;
+    }
+
     const existingAction = state.actions.find(action => action.type === 'purchase' && action.purchaseType === 'soldier')
 
     if (existingAction) {
@@ -230,6 +262,7 @@ function purchaseSoldier (): Reducer<State> {
         actions: state.actions.map(action => action.type === 'purchase' && (action === existingAction) ? ({...action, quantity: action.quantity + 1}) : action)
       }
     }
+
     return {
       ...state,
 
@@ -314,6 +347,7 @@ function positionFromEvent (ev: Event): Position {
 
 export function Client (sources: Sources): Sinks {
   const initialState = {
+    timer: 0,
     actions: [],
     selection: null,
     gameState: null
@@ -335,9 +369,15 @@ export function Client (sources: Sources): Sinks {
       return {
         ...state,
 
+        timer: 10000,
+
         actions: []
       }
     });
+
+  const decreaseTimer$ = sources.Time.animationFrames()
+    .map(frame => frame.delta)
+    .map(delta => (state: State): State => ({...state, timer: Math.max(state.timer - delta, 0)}));
 
   const purchaseSoldier$ = sources.DOM
     .select('.purchase.soldier')
@@ -353,7 +393,8 @@ export function Client (sources: Sources): Sinks {
       };
     }),
     purchaseSoldier$,
-    processActions$
+    processActions$,
+    decreaseTimer$
   );
 
   const hoverCell$ = sources.DOM
@@ -376,12 +417,12 @@ export function Client (sources: Sources): Sinks {
 
   const Socket = localState$
     .map(state => ({type: 'updateActions', actions: state.actions}))
-    .compose(dropRepeats());
+    .compose(dropRepeats((a: any, b: any) => JSON.stringify(a) === JSON.stringify(b)));;
 
   return {
     DOM: xs.combine(state$, localState$, hoveredCell$).map(view),
     Socket,
-    Log: localState$,
+    Log: xs.empty(),
     localState$
   }
 }

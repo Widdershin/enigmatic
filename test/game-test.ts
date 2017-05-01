@@ -288,6 +288,29 @@ describe('enigmatic', () => {
        ---------------------
       `);
     });
+
+    it('accumulates money for each player per turn', () => {
+      const state = makeGameState();
+
+      state.players.forEach(player => assert.equal(player.money, 3));
+
+      const updatedState = update(state, []);
+
+      updatedState.players.forEach(player => assert.equal(player.money, 6));
+    });
+
+    it('costs money to purchase things', () => {
+      const state = makeGameState();
+
+      state.players.forEach(player => assert.equal(player.money, 3));
+
+      const updatedState = update(state, [
+        {type: 'purchase', purchaseType: 'soldier', quantity: 3, cost: 1, playerId: 'blue'},
+        {type: 'purchase', purchaseType: 'soldier', quantity: 3, cost: 1, playerId: 'red'}
+      ]);
+
+      updatedState.players.forEach(player => assert.equal(player.money, 3));
+    });
   });
 
   describe('stripWhitespace', () => {
