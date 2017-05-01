@@ -27,7 +27,7 @@ describe('Client', () => {
 
     const cellClick$ = d(`---s---m---`, {s: selectClickEvent, m: moveClickEvent});
     const expected$  = d(`n------m---`, {n: [], m: [expectedMoveEvent]});
-    const socket$    = d(`i----------`, {i: {type: 'updateGameState', gameState: initialGameState}});
+    const socket$    = d(`i----------`, {i: {type: 'updateGameState', playerId: 'blue', gameState: initialGameState}});
 
     const DOM = mockDOMSource({
       '.cell': {
@@ -58,7 +58,7 @@ describe('Client', () => {
 
     const cellClick$ = d(`---s---m---`, {s: selectClickEvent, m: moveClickEvent});
     const expected$  = d(`n----------`, {n: []});
-    const socket$    = d(`i----------`, {i: {type: 'updateGameState', gameState: initialGameState}});
+    const socket$    = d(`i----------`, {i: {type: 'updateGameState', playerId: 'blue', gameState: initialGameState}});
 
     const DOM = mockDOMSource({
       '.cell': {
@@ -101,7 +101,7 @@ describe('Client', () => {
     }
 
     const purchaseClick$ = d(`---x---x---`);
-    const socket$        = d(`i----------`, {i: {type: 'updateGameState', gameState: initialGameState}});
+    const socket$        = d(`i----------`, {i: {type: 'updateGameState', playerId: 'blue', gameState: initialGameState}});
     const expected$      = d(`n--1---2---`, {n: [], 1: [soldierPurchase], 2: [twoSoldierPurchase]});
 
     const DOM = mockDOMSource({

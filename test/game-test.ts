@@ -19,7 +19,7 @@ function stripWhitespace (str: string): string {
 }
 
 function assertState (actualState: GameState, expectedState: string) {
-  assert.equal(toString(actualState), stripWhitespace(expectedState));
+  assert.equal(toString(actualState), stripWhitespace(expectedState), `Really got: \n${toString(actualState)}`);
 }
 
 describe('enigmatic', () => {
@@ -310,6 +310,121 @@ describe('enigmatic', () => {
       ]);
 
       updatedState.players.forEach(player => assert.equal(player.money, 3));
+    });
+  });
+
+  describe('battles', () => {
+    function makeBattleState () {
+      const state = makeGameState();
+
+      return update(state, [
+        {
+          type: 'purchase',
+          playerId: 'blue',
+          purchaseType: 'soldier',
+          quantity: 1,
+          cost: 1
+        },
+        {
+          type: 'move',
+          numberOfTroops: 3,
+          playerId: 'blue',
+          from: {
+            row: 4,
+            column: 2
+          },
+          direction: {
+            row: -1,
+            column: 1
+          }
+        },
+        {
+          type: 'move',
+          numberOfTroops: 1,
+          playerId: 'red',
+          from: {
+            row: 0,
+            column: 2
+          },
+          direction: {
+            row: 1,
+            column: 0
+          }
+        },
+        {
+          type: 'move',
+          numberOfTroops: 3,
+          playerId: 'blue',
+          from: {
+            row: 3,
+            column: 3
+          },
+          direction: {
+            row: -1,
+            column: 0
+          }
+        },
+      ])
+    }
+
+    it('works', () => {
+      const state = makeBattleState();
+      assertState(state, `
+
+       ---------------------
+       |   |   | r1|   |   |
+       |   |   | # |   |   |
+       ---------------------
+       |   |   | r1|   |   |
+       |   |   |   |   |   |
+       ---------------------
+       |   |   |   | b3|   |
+       | ^ |   | @ |   | ^ |
+       ---------------------
+       |   |   |   |   |   |
+       |   |   |   |   |   |
+       ---------------------
+       |   |   | b |   |   |
+       |   |   | # |   |   |
+       ---------------------
+      `);
+
+      const actions : Action[] = [
+        {
+          type: 'move',
+          numberOfTroops: 3,
+          playerId: 'blue',
+          from: {
+            row: 2,
+            column: 3
+          },
+          direction: {
+            row: -1,
+            column: -1
+          }
+        }
+      ];
+
+      const stateAfterActions = [actions].reduce((state, actions) => update(state, actions), state);
+
+      assertState(state, `
+       ---------------------
+       |   |   | r1|   |   |
+       |   |   | # |   |   |
+       ---------------------
+       |   |   | b1|   |   |
+       |   |   |   |   |   |
+       ---------------------
+       |   |   |   |   |   |
+       | ^ |   | @ |   | ^ |
+       ---------------------
+       |   |   |   |   |   |
+       |   |   |   |   |   |
+       ---------------------
+       |   |   | b |   |   |
+       |   |   | # |   |   |
+       ---------------------
+      `);
     });
   });
 

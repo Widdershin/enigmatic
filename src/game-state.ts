@@ -94,6 +94,40 @@ export function update (state: GameState, actions: Action[]): GameState {
   return everyTurnReducers.reduce((state, reducer) => reducer(state), updatedState);
 }
 
+function add (a: Position, b: Position): Position {
+  return {
+    row: a.row + b.row,
+    column: a.column + b.column
+  }
+}
+
+type BattleResult = {
+  livingAllied: Unit[];
+  dead: Set<Unit>;
+}
+
+const DEFENDER_ADVANTAGE = 1;
+
+function battle (movingTroops: Unit[], enemyTroops: Unit[]): BattleResult {
+  const alliedCount = movingTroops.length;
+  const enemyCount = enemyTroops.length;
+
+  let enemyStrength = DEFENDER_ADVANTAGE + enemyCount;
+  const dead = new Set<Unit>();
+
+  while (enemyStrength > 0 && movingTroops.length > 0) {
+    dead.add(movingTroops.pop() as Unit);
+    dead.add(enemyTroops.pop() as Unit);
+
+    enemyStrength -= 1;
+  }
+
+  return {
+    livingAllied: movingTroops,
+    dead
+  }
+}
+
 const reducers = {
   move (state: GameState, moveAction: Action): GameState {
     const action = moveAction as MoveAction;
@@ -101,9 +135,22 @@ const reducers = {
       unit.ownerId === action.playerId && samePosition(unit.position, action.from)
     );
 
-    possibleSoldiersToMove.slice(0, action.numberOfTroops).forEach((unit: Unit) => {
-      unit.position.row += action.direction.row;
-      unit.position.column += action.direction.column;
+    const tileToMoveTo = add(action.from, action.direction);
+
+    const enemies = state.units.filter(unit => unit.ownerId !== action.playerId && samePosition(unit.position, tileToMoveTo));
+
+    let movingTroops = possibleSoldiersToMove.slice(0, action.numberOfTroops);
+
+    if (enemies.length > 0) {
+      const battleResults = battle(movingTroops, enemies);
+
+      state.units = state.units.filter(unit => !battleResults.dead.has(unit));
+
+      movingTroops = battleResults.livingAllied;
+    }
+
+    movingTroops.forEach((unit: Unit) => {
+      unit.position = add(unit.position, action.direction);
     });
 
     return state;
