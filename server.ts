@@ -13,11 +13,15 @@ function makeWebSocketServerDriver (port: number) {
       port
     });
 
-    console.log(`Listening on port :${port}`);;
     const sources$ = xs.create<MessageToServer>();
     const connection$ = xs.create<string>();
+    const possibleIds = ['blue', 'red'];
+    let playerCount = 0;
 
     (server as any).on('connection', function connection (ws: any) {
+      const playerId = possibleIds[playerCount % possibleIds.length];
+      playerCount += 1;
+
       connection$.shamefullySendNext('');
 
       console.log(`New connection`);
@@ -32,13 +36,15 @@ function makeWebSocketServerDriver (port: number) {
         }
 
         if (parsedMessage) {
-          parsedMessage.playerId = 'blue';
+          parsedMessage.playerId = playerId;
           sources$.shamefullySendNext(parsedMessage);
         }
       });
 
       const listener = {
         next (message: MessageFromServer) {
+          message.playerId = playerId;
+
           ws.send(JSON.stringify(message));
         },
 

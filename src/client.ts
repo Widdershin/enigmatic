@@ -21,10 +21,11 @@ export type Sinks = {
 }
 
 export type State = {
-  timer: number,
-  actions: Action[],
-  gameState: null | GameState,
-  selection: null | {position: Position, numberOfTroops: number}
+  playerId: string | null;
+  timer: number;
+  actions: Action[];
+  gameState: null | GameState;
+  selection: null | {position: Position, numberOfTroops: number};
 }
 
 type Reducer<T> = (state: T) => T;
@@ -73,7 +74,11 @@ function renderTimer (time: number) {
 }
 
 function view ([state, localState, hoverPosition]: [GameState, State, Position | null]): VNode {
-  const player = state.players.find(player => player.id === 'blue') as PlayerState;
+  if (!localState.playerId) {
+    return div('Connecting...');
+  }
+
+  const player = state.players.find(player => player.id === localState.playerId) as PlayerState;
   const purchases = localState.actions
     .filter(action => action.type === 'purchase')
 
@@ -87,7 +92,7 @@ function view ([state, localState, hoverPosition]: [GameState, State, Position |
 
   const settlementPositions = state.units
     .filter(settlement => settlement.ownerId === player.id)
-    .map(unit => unit.position);;
+    .map(unit => unit.position);
 
   const visibleTiles : Position[] = flatten([
     unitPositions,
@@ -103,7 +108,7 @@ function view ([state, localState, hoverPosition]: [GameState, State, Position |
     ]),
 
     div('.sidebar', [
-      div('.name', 'blue'),
+      div('.name', player.id),
       div('.money', manyMoney(player.money - amountSpent)),
       div('.purchases', [
         div('.header', 'Purchase: '),
@@ -221,7 +226,7 @@ function renderCell (state: GameState, localState: State, position: Position, is
       ...arrows,
 
       div('.settlement', {style}, settlement ? renderSettlement(settlement) : ''),
-      div('.unit', {style}, troopsCount > 0 ? `💂 x ${troopsCount}` : '')
+      visible ? div('.unit', {style}, troopsCount > 0 ? `💂 x ${troopsCount}` : '') : ''
     ])
   )
 }
@@ -240,7 +245,7 @@ function applyReducer (state: State, reducer: Reducer<State>): State {
 
 function purchaseSoldier (): Reducer<State> {
   return function (state: State): State {
-    const player = (state.gameState as GameState).players.find(player => player.id === 'blue') as PlayerState;
+    const player = (state.gameState as GameState).players.find(player => player.id === state.playerId) as PlayerState;
 
     const purchases = state.actions
       .filter(action => action.type === 'purchase')
@@ -266,7 +271,7 @@ function purchaseSoldier (): Reducer<State> {
     return {
       ...state,
 
-      actions: state.actions.concat({type: 'purchase', purchaseType: 'soldier', playerId: 'blue', cost: 1, quantity: 1})
+      actions: state.actions.concat({type: 'purchase', purchaseType: 'soldier', playerId: state.playerId as string, cost: 1, quantity: 1})
     }
   }
 }
@@ -285,7 +290,7 @@ function cellClickReducer (clickPosition: Position): Reducer<State> {
     let troopsAtPosition : Unit[] = [];
 
     if (state.gameState) {
-      troopsAtPosition = state.gameState.units.filter((unit: Unit) => samePosition(unit.position, clickPosition) && unit.ownerId === 'blue');
+      troopsAtPosition = state.gameState.units.filter((unit: Unit) => samePosition(unit.position, clickPosition) && unit.ownerId === state.playerId);
     }
 
     if (state.selection === null) {
@@ -323,7 +328,7 @@ function cellClickReducer (clickPosition: Position): Reducer<State> {
 
           actions: state.actions.concat({
             type: 'move',
-            playerId: 'blue',
+            playerId: state.playerId as string,
             from: state.selection.position,
             direction: (subtract(clickPosition, state.selection.position) as Direction),
             numberOfTroops: state.selection.numberOfTroops
@@ -347,6 +352,7 @@ function positionFromEvent (ev: Event): Position {
 
 export function Client (sources: Sources): Sinks {
   const initialState = {
+    playerId: null,
     timer: 0,
     actions: [],
     selection: null,
@@ -359,8 +365,11 @@ export function Client (sources: Sources): Sinks {
     .map(positionFromEvent)
     .map(cellClickReducer)
 
-  const state$ = sources.Socket
-    .filter((message: MessageFromServer) => message.type === 'updateGameState')
+  const updateGameState$ = sources.Socket
+    .filter((message: MessageFromServer) => message.type === 'updateGameState');
+
+  const state$ = updateGameState$
+    .remember()
     .map((message: UpdateGameStateMessage) => message.gameState)
 
   const processActions$ = sources.Socket
@@ -369,6 +378,7 @@ export function Client (sources: Sources): Sinks {
       return {
         ...state,
 
+        playerId: message.playerId,
         timer: 10000,
 
         actions: []
@@ -386,10 +396,11 @@ export function Client (sources: Sources): Sinks {
 
   const reducer$ = xs.merge(
     cellClick$,
-    state$.map((gameState: GameState) => (state: State): State => {
+    updateGameState$.map((message: UpdateGameStateMessage) => (state: State): State => {
       return {
         ...state,
-        gameState
+        gameState: message.gameState,
+        playerId: message.playerId
       };
     }),
     purchaseSoldier$,
